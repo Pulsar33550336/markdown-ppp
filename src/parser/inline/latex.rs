@@ -1,8 +1,8 @@
 use nom::{
     bytes::complete::take_while,
     character::complete::char,
-    combinator::{map, recognize},
-    sequence::{delimited, pair},
+    combinator::map,
+    sequence::delimited,
     IResult, Parser,
 };
 
