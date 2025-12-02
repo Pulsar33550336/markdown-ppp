@@ -23,7 +23,7 @@ fn test_dash_wrapping_creates_list() {
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
     // Render with very narrow width to force wrapping
-    let config = Config::default().with_width(10);
+    let config = Config::default().with_width(10).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
 
     // Parse the rendered result to check if it's still the same structure
@@ -52,7 +52,7 @@ fn test_asterisk_wrapping_creates_list() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(10);
+    let config = Config::default().with_width(10).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -74,7 +74,7 @@ fn test_plus_wrapping_creates_list() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(10);
+    let config = Config::default().with_width(10).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -91,7 +91,7 @@ fn test_hash_wrapping_creates_heading() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(15);
+    let config = Config::default().with_width(15).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -115,7 +115,7 @@ fn test_pipe_wrapping_creates_table() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(15);
+    let config = Config::default().with_width(15).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -133,7 +133,7 @@ fn test_gt_wrapping_creates_blockquote() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(20);
+    let config = Config::default().with_width(20).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -151,7 +151,7 @@ fn test_number_dot_wrapping_creates_ordered_list() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(25);
+    let config = Config::default().with_width(25).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -174,7 +174,7 @@ fn test_horizontal_rule_wrapping_creates_thematic_break() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(20);
+    let config = Config::default().with_width(20).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -192,7 +192,7 @@ fn test_code_fence_wrapping_creates_code_block() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(20);
+    let config = Config::default().with_width(20).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -210,7 +210,7 @@ fn test_multiple_syntax_conflicts() {
     assert_eq!(original_doc.blocks.len(), 1);
     assert!(matches!(original_doc.blocks[0], Block::Paragraph(_)));
 
-    let config = Config::default().with_width(12);
+    let config = Config::default().with_width(12).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -231,7 +231,7 @@ fn test_indentation_wrapping_creates_code_block() {
 
     let original_doc = parse_markdown(MarkdownParserState::default(), text).unwrap();
 
-    let config = Config::default().with_width(15);
+    let config = Config::default().with_width(15).with_smart_wrapping(true);
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -262,7 +262,7 @@ fn test_problematic_pattern(pattern: &str, description: &str) {
         return;
     }
 
-    let config = Config::default().with_width(8); // Very narrow to force wrapping
+    let config = Config::default().with_width(8).with_smart_wrapping(true); // Very narrow to force wrapping
     let rendered = render_markdown(&original_doc, config);
     let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 
@@ -326,7 +326,7 @@ fn test_round_trip_with_wrapping_issues() {
 
         // Test with various narrow widths
         for width in [10, 15, 20, 25] {
-            let config = Config::default().with_width(width);
+            let config = Config::default().with_width(width).with_smart_wrapping(true);
             let rendered = render_markdown(&original_doc, config);
             let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 

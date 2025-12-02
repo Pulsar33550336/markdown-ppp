@@ -48,7 +48,7 @@ impl<'a> ToDoc<'a> for Block {
         arena: &'a Arena<'a>,
     ) -> DocBuilder<'a, Arena<'a>, ()> {
         match self {
-            Block::Paragraph(inlines) => inlines.to_doc_inline(true, arena),
+            Block::Paragraph(inlines) => inlines.to_doc_inline(true, arena, config.clone()),
             Block::Heading(v) => v.to_doc(config, arena),
             Block::ThematicBreak => arena.text("---"),
             Block::BlockQuote(inner) => {
@@ -78,7 +78,7 @@ impl<'a> ToDoc<'a> for Block {
             Block::HtmlBlock(html) => arena.text(html.clone()),
             Block::Definition(def) => arena
                 .text("[")
-                .append(def.label.to_doc_inline(true, arena))
+                .append(def.label.to_doc_inline(true, arena, config.clone()))
                 .append(arena.text("]: "))
                 .append(arena.text(format!(
                     "{}{}",
@@ -97,6 +97,7 @@ impl<'a> ToDoc<'a> for Block {
             Block::GitHubAlert(alert) => {
                 crate::printer::github_alert::github_alert_to_doc(alert, config, arena)
             }
+            Block::LatexBlock(latex) => arena.text(format!("$${}$$", latex)),
         }
     }
 }

@@ -9,6 +9,7 @@ mod list;
 pub(crate) mod paragraph;
 mod table;
 mod thematic_break;
+mod latex;
 
 #[cfg(test)]
 mod tests;
@@ -41,6 +42,11 @@ pub(crate) fn block<'a>(
                         crate::parser::blocks::heading::heading_v1(state.clone()),
                         Block::Heading,
                     ),
+                ),
+                // NOTE: It's important that the latex parser comes before the paragraph parser
+                map(
+                    crate::parser::blocks::latex::latex_block,
+                    |b| vec![b]
                 ),
                 conditional_block(
                     state.config.block_heading_v2_behavior.clone(),

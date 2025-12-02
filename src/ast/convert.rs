@@ -100,6 +100,10 @@ impl<T: Default> WithData<T> for Block {
                 generic::Block::FootnoteDefinition(footnote.with_data(data))
             }
             Block::GitHubAlert(alert) => generic::Block::GitHubAlert(alert.with_data(data)),
+            Block::LatexBlock(content) => generic::Block::LatexBlock {
+                content,
+                user_data: data,
+            },
             Block::Empty => generic::Block::Empty { user_data: data },
         }
     }
@@ -116,6 +120,10 @@ impl<T: Default> WithData<T> for Inline {
             },
             Inline::LineBreak => generic::Inline::LineBreak { user_data: data },
             Inline::Code(content) => generic::Inline::Code {
+                content,
+                user_data: data,
+            },
+            Inline::Latex(content) => generic::Inline::Latex {
                 content,
                 user_data: data,
             },
@@ -381,6 +389,7 @@ impl<T> StripData<T> for generic::Block<T> {
                 Block::FootnoteDefinition(footnote.strip_data())
             }
             generic::Block::GitHubAlert(alert) => Block::GitHubAlert(alert.strip_data()),
+            generic::Block::LatexBlock { content, .. } => Block::LatexBlock(content),
             generic::Block::Empty { .. } => Block::Empty,
         }
     }
@@ -394,6 +403,7 @@ impl<T> StripData<T> for generic::Inline<T> {
             generic::Inline::Text { content, .. } => Inline::Text(content),
             generic::Inline::LineBreak { .. } => Inline::LineBreak,
             generic::Inline::Code { content, .. } => Inline::Code(content),
+            generic::Inline::Latex { content, .. } => Inline::Latex(content),
             generic::Inline::Html { content, .. } => Inline::Html(content),
             generic::Inline::Link(link) => Inline::Link(link.strip_data()),
             generic::Inline::LinkReference(link_ref) => {

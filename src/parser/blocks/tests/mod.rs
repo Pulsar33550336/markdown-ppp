@@ -10,3 +10,4 @@ mod list;
 mod paragraph;
 mod table;
 mod thematic_break;
+mod latex;

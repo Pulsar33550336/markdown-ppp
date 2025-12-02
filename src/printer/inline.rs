@@ -1,12 +1,15 @@
 use crate::ast::*;
+use crate::printer::config::Config;
 use crate::printer::markdown_syntax_detector::is_safe_line_break_before;
 use pretty::{Arena, DocAllocator, DocBuilder};
+use std::rc::Rc;
 
 pub(crate) trait ToDocInline<'a> {
     fn to_doc_inline(
         &self,
         allow_newlines: bool,
         arena: &'a Arena<'a>,
+        config: Rc<Config>,
     ) -> DocBuilder<'a, Arena<'a>, ()>;
 }
 
@@ -15,10 +18,11 @@ impl<'a> ToDocInline<'a> for Vec<Inline> {
         &self,
         allow_newlines: bool,
         arena: &'a Arena<'a>,
+        config: Rc<Config>,
     ) -> DocBuilder<'a, Arena<'a>, ()> {
         arena.concat(
             self.iter()
-                .map(|inline| inline.to_doc_inline(allow_newlines, arena))
+                .map(|inline| inline.to_doc_inline(allow_newlines, arena, config.clone()))
                 .collect::<Vec<_>>(),
         )
     }
@@ -29,6 +33,7 @@ impl<'a> ToDocInline<'a> for Inline {
         &self,
         allow_newlines: bool,
         arena: &'a Arena<'a>,
+        config: Rc<Config>,
     ) -> DocBuilder<'a, Arena<'a>, ()> {
         match self {
             Inline::Text(t) => {
@@ -44,24 +49,25 @@ impl<'a> ToDocInline<'a> for Inline {
                     arena.concat(words_or_spaces)
                 } else {
                     // Use smart line breaking when newlines are allowed
-                    safe_text_layout(&words_or_spaces, arena)
+                    safe_text_layout(&words_or_spaces, arena, config)
                 }
             }
             // TODO parametrize format
             Inline::LineBreak => arena.text("  \n"),
             Inline::Code(code) => arena.text("`").append(code.clone()).append(arena.text("`")),
+            Inline::Latex(latex) => arena.text(format!("${}$", latex)),
             Inline::Html(html) => arena.text(html.clone()),
             Inline::Emphasis(children) => arena
                 .text("*")
-                .append(children.to_doc_inline(allow_newlines, arena))
+                .append(children.to_doc_inline(allow_newlines, arena, config.clone()))
                 .append(arena.text("*")),
             Inline::Strong(children) => arena
                 .text("**")
-                .append(children.to_doc_inline(allow_newlines, arena))
+                .append(children.to_doc_inline(allow_newlines, arena, config.clone()))
                 .append(arena.text("**")),
             Inline::Strikethrough(children) => arena
                 .text("~~")
-                .append(children.to_doc_inline(allow_newlines, arena))
+                .append(children.to_doc_inline(allow_newlines, arena, config.clone()))
                 .append(arena.text("~~")),
             Inline::Link(Link {
                 destination,
@@ -77,7 +83,7 @@ impl<'a> ToDocInline<'a> for Inline {
                 };
                 arena
                     .text("[")
-                    .append(children.to_doc_inline(allow_newlines, arena))
+                    .append(children.to_doc_inline(allow_newlines, arena, config.clone()))
                     .append(arena.text("]("))
                     .append(arena.text(destination.clone()))
                     .append(title)
@@ -107,14 +113,14 @@ impl<'a> ToDocInline<'a> for Inline {
                 if v.label == v.text {
                     return arena
                         .text("[")
-                        .append(v.label.to_doc_inline(allow_newlines, arena))
+                        .append(v.label.to_doc_inline(allow_newlines, arena, config.clone()))
                         .append("]");
                 }
                 arena
                     .text("[")
-                    .append(v.text.to_doc_inline(allow_newlines, arena))
+                    .append(v.text.to_doc_inline(allow_newlines, arena, config.clone()))
                     .append("][")
-                    .append(v.label.to_doc_inline(allow_newlines, arena))
+                    .append(v.label.to_doc_inline(allow_newlines, arena, config.clone()))
                     .append(arena.text("]"))
             }
         }
@@ -164,6 +170,7 @@ fn split_with_spaces(s: &str) -> Vec<Option<&str>> {
 fn safe_text_layout<'a>(
     words_or_spaces: &[Option<&str>],
     arena: &'a Arena<'a>,
+    config: Rc<Config>,
 ) -> DocBuilder<'a, Arena<'a>, ()> {
     if words_or_spaces.is_empty() {
         return arena.nil();
@@ -183,16 +190,20 @@ fn safe_text_layout<'a>(
                 // Look ahead to see what the next word would be
                 let next_word = find_next_word(&words_or_spaces[i + 1..]);
 
-                let separator = if let Some(next_word) = next_word {
-                    if is_safe_line_break_before(next_word, &[]) {
-                        // Safe to break line here
-                        arena.softline()
+                let separator = if config.smart_wrapping {
+                    if let Some(next_word) = next_word {
+                        if is_safe_line_break_before(next_word, &[]) {
+                            // Safe to break line here
+                            arena.softline()
+                        } else {
+                            // Not safe - force a space to prevent line break
+                            arena.space()
+                        }
                     } else {
-                        // Not safe - force a space to prevent line break
-                        arena.space()
+                        // No next word, safe to use softline
+                        arena.softline()
                     }
                 } else {
-                    // No next word, safe to use softline
                     arena.softline()
                 };
 

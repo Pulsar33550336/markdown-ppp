@@ -112,6 +112,13 @@ pub enum Block<T = ()> {
     /// GitHub alert block (NOTE, TIP, IMPORTANT, WARNING, CAUTION)
     GitHubAlert(GitHubAlertNode<T>),
 
+    /// LaTeX block
+    LatexBlock {
+        content: String,
+        #[cfg_attr(feature = "ast-serde", serde(default))]
+        user_data: T,
+    },
+
     /// Empty block. This is used to represent skipped blocks in the AST.
     Empty {
         #[cfg_attr(feature = "ast-serde", serde(default))]
@@ -308,6 +315,13 @@ pub enum Inline<T = ()> {
 
     /// Inline code span
     Code {
+        content: String,
+        #[cfg_attr(feature = "ast-serde", serde(default))]
+        user_data: T,
+    },
+
+    /// LaTeX formula
+    Latex {
         content: String,
         #[cfg_attr(feature = "ast-serde", serde(default))]
         user_data: T,
