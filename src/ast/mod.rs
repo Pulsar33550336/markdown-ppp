@@ -84,6 +84,9 @@ pub enum Block {
     /// GitHub alert block (NOTE, TIP, IMPORTANT, WARNING, CAUTION)
     GitHubAlert(GitHubAlert),
 
+    /// LaTeX block
+    LatexBlock(String),
+
     /// Empty block. This is used to represent skipped blocks in the AST.
     Empty,
 }
@@ -310,6 +313,9 @@ pub enum Inline {
 
     /// Inline code span
     Code(String),
+
+    /// LaTeX formula
+    Latex(String),
 
     /// Raw HTML fragment
     Html(String),

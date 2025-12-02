@@ -192,7 +192,8 @@ fn table_content(table: &Table) -> Vec<Vec<String>> {
 
 fn render_cell(doc: &Vec<Inline>) -> String {
     let tmp_arena = Arena::new();
-    let doc = doc.to_doc_inline(false, &tmp_arena);
+    let config = Rc::new(crate::printer::config::Config::default());
+    let doc = doc.to_doc_inline(false, &tmp_arena, config);
 
     let mut buf = Vec::new();
     doc.render(usize::MAX, &mut buf).unwrap();

@@ -173,7 +173,7 @@ pub trait Visitor {
                 self.visit_code_block(code_block);
             }
             // Terminal nodes - no traversal needed
-            Block::ThematicBreak | Block::HtmlBlock(_) | Block::Empty => {}
+            Block::ThematicBreak | Block::HtmlBlock(_) | Block::Empty | Block::LatexBlock(_) => {}
         }
     }
 
@@ -210,6 +210,7 @@ pub trait Visitor {
             | Inline::Html(_)
             | Inline::Autolink(_)
             | Inline::FootnoteReference(_)
+            | Inline::Latex(_)
             | Inline::Empty => {}
         }
     }

@@ -37,16 +37,6 @@ pub mod printer;
 
 /// HTML renderer for converting Markdown AST to HTML.
 ///
-/// Render AST to HTML using [`render_html`](html_printer::render_html).
-#[cfg(feature = "html-printer")]
-pub mod html_printer;
-
-/// LaTeX renderer for converting Markdown AST to LaTeX.
-///
-/// Render AST to LaTeX using [`render_latex`](latex_printer::render_latex).
-#[cfg(feature = "latex-printer")]
-pub mod latex_printer;
-
 /// Typst renderer for converting Markdown AST to Typst.
 ///
 /// Render AST to Typst using [`render_typst`](typst_printer::render_typst).

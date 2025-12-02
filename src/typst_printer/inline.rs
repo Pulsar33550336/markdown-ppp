@@ -140,6 +140,12 @@ impl<'a> ToDoc<'a> for Inline {
             }
 
             Inline::Empty => state.arena.nil(),
+
+            Inline::Latex(latex) => state
+                .arena
+                .text("$")
+                .append(state.arena.text(latex.clone()))
+                .append(state.arena.text("$")),
         }
     }
 }

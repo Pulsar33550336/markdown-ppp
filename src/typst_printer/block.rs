@@ -99,6 +99,11 @@ impl<'a> ToDoc<'a> for Block {
             }
 
             Block::Empty => state.arena.nil(),
+            Block::LatexBlock(latex) => state
+                .arena
+                .text("$")
+                .append(state.arena.text(latex.clone()))
+                .append(state.arena.text("$")),
         }
     }
 }

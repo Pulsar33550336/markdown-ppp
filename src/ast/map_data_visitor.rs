@@ -60,6 +60,12 @@ pub trait MapDataVisitor<T, U> {
             generic::Block::Empty { user_data } => generic::Block::Empty {
                 user_data: self.map_data(user_data),
             },
+            generic::Block::LatexBlock { content, user_data } => {
+                generic::Block::LatexBlock {
+                    content,
+                    user_data: self.map_data(user_data),
+                }
+            }
         }
     }
 
@@ -111,6 +117,10 @@ pub trait MapDataVisitor<T, U> {
                 }
             }
             generic::Inline::Empty { user_data } => generic::Inline::Empty {
+                user_data: self.map_data(user_data),
+            },
+            generic::Inline::Latex { content, user_data } => generic::Inline::Latex {
+                content,
                 user_data: self.map_data(user_data),
             },
         }

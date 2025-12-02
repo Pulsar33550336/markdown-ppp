@@ -3,6 +3,7 @@ pub struct Config {
     pub(crate) width: usize,
     pub(crate) spaces_before_list_item: usize,
     pub(crate) empty_line_before_list: bool,
+    pub(crate) smart_wrapping: bool,
 }
 
 impl Default for Config {
@@ -11,6 +12,7 @@ impl Default for Config {
             width: 80,
             spaces_before_list_item: 1,
             empty_line_before_list: true,
+            smart_wrapping: false,
         }
     }
 }
@@ -47,6 +49,18 @@ impl Config {
     pub fn with_empty_line_before_list(self, tight: bool) -> Self {
         Self {
             empty_line_before_list: tight,
+            ..self
+        }
+    }
+
+    /// Sets whether to use smart wrapping for text.
+    ///
+    /// The default is `true`, which means that text is wrapped intelligently to avoid
+    /// creating unwanted markdown syntax. If set to `false`, text is wrapped without
+    /// considering the markdown syntax, which may lead to unintended formatting.
+    pub fn with_smart_wrapping(self, smart_wrapping: bool) -> Self {
+        Self {
+            smart_wrapping,
             ..self
         }
     }

@@ -198,6 +198,7 @@ impl Visitor for NodeCounter {
             Inline::FootnoteReference(_) => self.footnote_ref_count += 1,
             Inline::LineBreak => {}
             Inline::Empty => {}
+            Inline::Latex(_) => {}
         }
         self.walk_inline(inline);
     }
@@ -216,6 +217,7 @@ impl Visitor for NodeCounter {
             Block::GitHubAlert(_) => self.github_alert_count += 1,
             Block::Definition(_) => self.definition_count += 1,
             Block::Empty => {}
+            Block::LatexBlock(_) => {}
         }
         self.walk_block(block);
     }

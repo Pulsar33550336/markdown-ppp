@@ -10,3 +10,4 @@ mod image;
 mod inline_link;
 mod reference_link;
 mod strikethrough;
+mod latex;

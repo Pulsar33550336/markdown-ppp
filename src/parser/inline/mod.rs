@@ -10,6 +10,7 @@ mod inline_link;
 mod reference_link;
 mod strikethrough;
 mod text;
+mod latex;
 
 #[cfg(test)]
 mod tests;
@@ -121,6 +122,8 @@ pub(crate) fn inline<'a>(
                 crate::parser::inline::environment_variable::environment_variable,
                 |env_var| vec![env_var],
             ),
+            // NOTE: It's important that the latex parser comes before the text parser
+            crate::parser::inline::latex::latex,
             conditional_inline(
                 state.config.inline_emphasis_behavior.clone(),
                 crate::parser::inline::emphasis::emphasis(state.clone()),

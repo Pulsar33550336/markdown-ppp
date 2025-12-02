@@ -22,7 +22,10 @@ pub(crate) fn text<'a>(
                     |c| c.to_string(),
                 ),
                 map(
-                    recognize(many1(preceded(peek(is_text(state.clone())), anychar))),
+                    recognize(many1(preceded(
+                        peek(is_text(state.clone())),
+                        preceded(not(char('$')), anychar),
+                    ))),
                     |c| c.to_string(),
                 ),
             ))),
