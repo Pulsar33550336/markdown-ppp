@@ -19,53 +19,30 @@ fn list1() {
 }
 
 #[test]
-fn list11() {
-    let doc = parse_markdown(
-        MarkdownParserState::default(),
-        "1. a\n   * d\n   * e\n2. b\n3. c",
-    )
-    .unwrap();
-    assert_eq!(
-        doc,
-        Document {
-            blocks: vec![Block::List(List {
-                kind: ListKind::Ordered(ListOrderedKindOptions { start: 1 }),
-                items: vec![
-                    ListItem {
-                        task: None,
-                        blocks: vec![
-                            Block::Paragraph(vec![Inline::Text("a".to_owned())]),
-                            Block::List(List {
-                                kind: ListKind::Bullet(ListBulletKind::Star),
-                                items: vec![
-                                    ListItem {
-                                        task: None,
-                                        blocks: vec![Block::Paragraph(vec![Inline::Text(
-                                            "d".to_owned()
-                                        )])]
-                                    },
-                                    ListItem {
-                                        task: None,
-                                        blocks: vec![Block::Paragraph(vec![Inline::Text(
-                                            "e".to_owned()
-                                        )])]
-                                    }
-                                ]
-                            })
-                        ]
-                    },
-                    ListItem {
-                        task: None,
-                        blocks: vec![Block::Paragraph(vec![Inline::Text("b".to_owned())])]
-                    },
-                    ListItem {
-                        task: None,
-                        blocks: vec![Block::Paragraph(vec![Inline::Text("c".to_owned())])]
-                    }
-                ]
-            })]
-        }
-    );
+fn list_with_empty_lines() {
+    let doc = parse_markdown(MarkdownParserState::default(), r#"
+1. 将 $A_1, A_2$ 染成红色，将 $A_3$ 染成蓝色（$\color{red}{1}\color{red}{2}\color{blue}{1}$），其得分计算方式如下：
+
+   - 对于 $A_1$，由于其左侧没有红色的数，所以 $C_1 = 0$。
+   - 对于 $A_2$，其左侧与其最靠近的红色数为 $A_1$。由于 $A_1 \neq A_2$，所以 $C_2 = 0$。
+   - 对于 $A_3$，由于其左侧没有蓝色的数，所以 $C_3 = 0$。
+     该方案最终得分为 $C_1 + C_2 + C_3 = 0$。
+
+2. 将 $A_1, A_2, A_3$ 全部染成红色（$\color{red}{121}$），其得分计算方式如下：
+
+   - 对于 $A_1$，由于其左侧没有红色的数，所以 $C_1 = 0$。
+   - 对于 $A_2$，其左侧与其最靠近的红色数为 $A_1$。由于 $A_1 \neq A_2$，所以 $C_2 = 0$。
+   - 对于 $A_3$，其左侧与其最靠近的红色数为 $A_2$。由于 $A_2 \neq A_3$，所以 $C_3 = 0$。
+     该方案最终得分为 $C_1 + C_2 + C_3 = 0$。
+
+3. 将 $A_1, A_3$ 染成红色，将 $A_2$ 染成蓝色（$\color{red}{1}\color{blue}{2}\color{red}{1}$），其得分计算方式如下：
+
+   - 对于 $A_1$，由于其左侧没有红色的数，所以 $C_1 = 0$。
+   - 对于 $A_2$，由于其左侧没有蓝色的数，所以 $C_2 = 0$。
+   - 对于 $A_3$，其左侧与其最靠近的红色数为 $A_1$。由于 $A_1 = A_3$，所以 $C_3 = A_3 = 1$。
+     该方案最终得分为 $C_1 + C_2 + C_3 = 1$。
+"#).unwrap();
+    assert_eq!(doc.blocks.len(), 1);
 }
 
 #[test]

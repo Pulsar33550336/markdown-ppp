@@ -232,21 +232,22 @@ pub(crate) fn list_item(
 pub(crate) fn list(
     state: Rc<MarkdownParserState>,
 ) -> impl FnMut(&str) -> IResult<&str, crate::ast::List> {
-    move |mut input: &str| {
-        let (new_input, (first_kind, first_item)) = list_item(state.clone())(input)?;
-        input = new_input;
+    move |input: &str| {
+        let (mut input, (first_kind, first_item)) = list_item(state.clone())(input)?;
 
         let mut items = vec![first_item];
 
-        loop {
-            let Ok((new_input, (kind, item))) = list_item(state.clone())(input) else {
-                break;
-            };
+        let mut item_parser = preceded(
+            many_empty_lines0,
+            map(
+                verify(list_item(state.clone()), |(kind, _item)| {
+                    std::mem::discriminant(kind) == std::mem::discriminant(&first_kind)
+                }),
+                |(_kind, item)| item,
+            ),
+        );
 
-            if std::mem::discriminant(&kind) != std::mem::discriminant(&first_kind) {
-                break;
-            }
-
+        while let Ok((new_input, item)) = item_parser.parse(input) {
             input = new_input;
             items.push(item);
         }
