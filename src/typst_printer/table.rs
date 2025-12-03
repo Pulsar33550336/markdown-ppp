@@ -4,6 +4,11 @@ use pretty::{Arena, DocAllocator, DocBuilder};
 
 impl<'a> ToDoc<'a> for Table {
     fn to_doc(&self, state: &'a crate::typst_printer::State<'a>) -> DocBuilder<'a, Arena<'a>, ()> {
+        if self.rows.is_empty() {
+            return state.arena.nil();
+        }
+
+
         let mut content = state.arena.nil();
 
         // Add table columns specification

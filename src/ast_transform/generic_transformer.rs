@@ -48,7 +48,7 @@ use crate::ast::generic::*;
 ///
 /// This trait provides the same transformation capabilities as the regular
 /// Transformer trait, but works with generic AST nodes that contain user data.
-pub trait GenericTransformer<T> {
+pub trait GenericTransformer<T: Default> {
     /// Transform a document with user data
     fn transform_document(&mut self, doc: Document<T>) -> Document<T> {
         self.walk_transform_document(doc)
@@ -276,10 +276,13 @@ pub trait GenericTransformer<T> {
     }
 
     /// Default transformation for table cells with user data
-    fn walk_transform_table_cell(&mut self, cell: TableCell<T>) -> TableCell<T> {
-        cell.into_iter()
+    fn walk_transform_table_cell(&mut self, mut cell: TableCell<T>) -> TableCell<T> {
+        cell.content = cell
+            .content
+            .into_iter()
             .map(|inline| self.transform_inline(inline))
-            .collect()
+            .collect();
+        cell
     }
 
     /// Default transformation for list items with user data
@@ -529,50 +532,50 @@ pub trait GenericTransformer<T> {
 }
 
 /// Extension trait for generic transformations
-pub trait GenericTransformWith<T> {
+pub trait GenericTransformWith<T: Default> {
     /// Apply a generic transformer to this AST node
     fn transform_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Self;
 }
 
-impl<T> GenericTransformWith<T> for Document<T> {
+impl<T: Default> GenericTransformWith<T> for Document<T> {
     fn transform_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Self {
         transformer.transform_document(self)
     }
 }
 
-impl<T> GenericTransformWith<T> for Block<T> {
+impl<T: Default> GenericTransformWith<T> for Block<T> {
     fn transform_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Self {
         transformer.transform_block(self)
     }
 }
 
-impl<T> GenericTransformWith<T> for Inline<T> {
+impl<T: Default> GenericTransformWith<T> for Inline<T> {
     fn transform_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Self {
         transformer.transform_inline(self)
     }
 }
 
 /// Extension trait for generic expandable transformations
-pub trait GenericExpandWith<T> {
+pub trait GenericExpandWith<T: Default> {
     /// Apply a generic expandable transformer to this AST node, returning multiple nodes
     fn expand_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Vec<Self>
     where
         Self: Sized;
 }
 
-impl<T> GenericExpandWith<T> for Document<T> {
+impl<T: Default> GenericExpandWith<T> for Document<T> {
     fn expand_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Vec<Self> {
         transformer.walk_expand_document(self)
     }
 }
 
-impl<T> GenericExpandWith<T> for Block<T> {
+impl<T: Default> GenericExpandWith<T> for Block<T> {
     fn expand_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Vec<Self> {
         transformer.walk_expand_block(self)
     }
 }
 
-impl<T> GenericExpandWith<T> for Inline<T> {
+impl<T: Default> GenericExpandWith<T> for Inline<T> {
     fn expand_with<Tr: GenericTransformer<T>>(self, transformer: &mut Tr) -> Vec<Self> {
         transformer.walk_expand_inline(self)
     }

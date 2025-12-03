@@ -217,7 +217,7 @@ pub trait Visitor {
 
     /// Default traversal for table cells
     fn walk_table_cell(&mut self, cell: &TableCell) {
-        for inline in cell {
+        for inline in &cell.content {
             self.visit_inline(inline);
         }
     }

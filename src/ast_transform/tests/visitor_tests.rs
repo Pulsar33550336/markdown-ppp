@@ -71,16 +71,36 @@ fn create_test_doc() -> Document {
                 rows: vec![
                     // Header row
                     vec![
-                        vec![Inline::Text("Header 1".to_string())],
-                        vec![Inline::Text("Header 2".to_string())],
+                        TableCell {
+                            content: vec![Inline::Text("Header 1".to_string())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false,
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("Header 2".to_string())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false,
+                        },
                     ],
                     // Data row
                     vec![
-                        vec![Inline::Text("Cell 1".to_string())],
-                        vec![
-                            Inline::Code("table code".to_string()),
-                            Inline::Text(" content".to_string()),
-                        ],
+                        TableCell {
+                            content: vec![Inline::Text("Cell 1".to_string())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false,
+                        },
+                        TableCell {
+                            content: vec![
+                                Inline::Code("table code".to_string()),
+                                Inline::Text(" content".to_string()),
+                            ],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false,
+                        },
                     ],
                 ],
                 alignments: vec![Alignment::Left, Alignment::Left],

@@ -339,7 +339,7 @@ where
         Block::Table(table) => {
             for row in &table.rows {
                 for cell in row {
-                    for inline in cell {
+                    for inline in &cell.content {
                         collect_inlines_from_inline(inline, predicate, results);
                     }
                 }
@@ -471,7 +471,7 @@ where
         Block::Table(table) => {
             for row in &table.rows {
                 for cell in row {
-                    for inline in cell {
+                    for inline in &cell.content {
                         if let Some(found) = find_first_inline_in_inline(inline, predicate) {
                             return Some(found);
                         }

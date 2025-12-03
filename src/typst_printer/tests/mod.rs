@@ -131,12 +131,32 @@ fn test_table() {
         blocks: vec![Block::Table(Table {
             rows: vec![
                 vec![
-                    vec![Inline::Text("Header 1".to_string())],
-                    vec![Inline::Text("Header 2".to_string())],
+                    TableCell {
+                        content: vec![Inline::Text("Header 1".to_string())],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
+                    TableCell {
+                        content: vec![Inline::Text("Header 2".to_string())],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
                 ],
                 vec![
-                    vec![Inline::Text("Cell 1".to_string())],
-                    vec![Inline::Text("Cell 2".to_string())],
+                    TableCell {
+                        content: vec![Inline::Text("Cell 1".to_string())],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
+                    TableCell {
+                        content: vec![Inline::Text("Cell 2".to_string())],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
                 ],
             ],
             alignments: vec![Alignment::Left, Alignment::Right],
@@ -144,8 +164,8 @@ fn test_table() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert!(result.contains("#table"));
-    assert!(result.contains("columns: (auto, auto)"));
+    assert!(result.contains("#figure(table"));
+    assert!(result.contains("columns: (2)"));
     assert!(result.contains("[Header 1]"));
     assert!(result.contains("[Cell 1]"));
     assert!(result.contains("[Cell 2]"));

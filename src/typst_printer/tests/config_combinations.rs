@@ -39,7 +39,12 @@ fn test_default_config() {
     let doc = Document {
         blocks: vec![
             Block::Table(Table {
-                rows: vec![vec![vec![Inline::Text("Test".to_string())]]],
+                rows: vec![vec![TableCell {
+                    content: vec![Inline::Text("Test".to_string())],
+                    colspan: None,
+                    rowspan: None,
+                    removed_by_extended_table: false,
+                }]],
                 alignments: vec![Alignment::Left],
             }),
             Block::CodeBlock(CodeBlock {
@@ -53,6 +58,6 @@ fn test_default_config() {
 
     let result = render_typst(&doc, Config::default());
 
-    assert!(result.contains("#table"));
+    assert!(result.contains("#figure(table"));
     assert!(result.contains("```rust"));
 }

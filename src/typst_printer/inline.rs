@@ -14,28 +14,17 @@ impl<'a> ToDoc<'a> for Vec<Inline> {
 impl<'a> ToDoc<'a> for Inline {
     fn to_doc(&self, state: &'a crate::typst_printer::State<'a>) -> DocBuilder<'a, Arena<'a>, ()> {
         match self {
-            // Inline::Text(text) => {
-            //     let text = text.replace('\n', " ");
-            //     if text.trim().is_empty() {
-            //         return state.arena.text(escape_typst(&text));
-            //     }
-            //     let words_or_spaces: Vec<_> = split_with_spaces(&text);
-            //     let words_or_spaces = words_or_spaces.into_iter().map(|v| match v {
-            //         Some(word) => state.arena.text(escape_typst(word)),
-            //         None => state.arena.softline(),
-            //     });
-            //     state.arena.concat(words_or_spaces)
-            // }
             Inline::Text(text) => {
                 let text = text.replace('\n', " ");
                 if text.trim().is_empty() {
-                    // 空文本也加上 #""
-                    state.arena.text(format!("#\"{}\"", escape_typst(&text)))
-                } else {
-                    // 对所有文本添加 #""
-                    let escaped_text = escape_typst(&text);
-                    state.arena.text(format!("#\"{}\"", escaped_text))
+                    return state.arena.text(escape_typst(&text));
                 }
+                let words_or_spaces: Vec<_> = split_with_spaces(&text);
+                let words_or_spaces = words_or_spaces.into_iter().map(|v| match v {
+                    Some(word) => state.arena.text(escape_typst(word)),
+                    None => state.arena.softline(),
+                });
+                state.arena.concat(words_or_spaces)
             }
 
             Inline::LineBreak => state.arena.hardline(),
@@ -44,9 +33,9 @@ impl<'a> ToDoc<'a> for Inline {
                 let escaped_code = code.replace('`', r"\`");
                 state
                     .arena
-                    .text("#raw(block: false, lang: \"txt\", \"")
+                    .text("`")
                     .append(state.arena.text(escaped_code))
-                    .append(state.arena.text("\")"))
+                    .append(state.arena.text("`"))
             }
 
             Inline::Html(html) => body(
@@ -114,15 +103,15 @@ impl<'a> ToDoc<'a> for Inline {
 
             Inline::Emphasis(content) => state
                 .arena
-                .text("#emph[")
+                .text("_")
                 .append(content.to_doc(state))
-                .append(state.arena.text("]")),
+                .append(state.arena.text("_")),
 
             Inline::Strong(content) => state
                 .arena
-                .text("#strong[")
+                .text("*")
                 .append(content.to_doc(state))
-                .append(state.arena.text("]")),
+                .append(state.arena.text("*")),
 
             Inline::Strikethrough(content) => state
                 .arena
@@ -164,27 +153,27 @@ impl<'a> ToDoc<'a> for Inline {
 }
 
 //// Split string by spaces, but keep the spaces in the result for proper word wrapping.
-// fn split_with_spaces(s: &str) -> Vec<Option<&str>> {
-//     let mut result = Vec::new();
-//     let mut word_start: Option<usize> = None;
+fn split_with_spaces(s: &str) -> Vec<Option<&str>> {
+    let mut result = Vec::new();
+    let mut word_start: Option<usize> = None;
 
-//     for (i, c) in s.char_indices() {
-//         if c.is_whitespace() {
-//             if let Some(start) = word_start {
-//                 result.push(Some(&s[start..i]));
-//                 word_start = None;
-//             }
-//             if result.last().is_none_or(|x| x.is_some()) {
-//                 result.push(None);
-//             }
-//         } else if word_start.is_none() {
-//             word_start = Some(i);
-//         }
-//     }
+    for (i, c) in s.char_indices() {
+        if c.is_whitespace() {
+            if let Some(start) = word_start {
+                result.push(Some(&s[start..i]));
+                word_start = None;
+            }
+            if result.last().is_none_or(|x| x.is_some()) {
+                result.push(None);
+            }
+        } else if word_start.is_none() {
+            word_start = Some(i);
+        }
+    }
 
-//     if let Some(start) = word_start {
-//         result.push(Some(&s[start..]));
-//     }
+    if let Some(start) = word_start {
+        result.push(Some(&s[start..]));
+    }
 
-//     result
-// }
+    result
+}

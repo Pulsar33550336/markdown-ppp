@@ -362,7 +362,7 @@ impl<T: Default> WithData<T> for LinkReference {
 // Conversion functions for generic AST -> regular AST
 // ——————————————————————————————————————————————————————————————————————————
 
-impl<T> StripData<T> for generic::Document<T> {
+impl<T: Default> StripData<T> for generic::Document<T> {
     type StrippedType = Document;
 
     fn strip_data(self) -> Self::StrippedType {
@@ -372,7 +372,7 @@ impl<T> StripData<T> for generic::Document<T> {
     }
 }
 
-impl<T> StripData<T> for generic::Block<T> {
+impl<T: Default> StripData<T> for generic::Block<T> {
     type StrippedType = Block;
 
     fn strip_data(self) -> Self::StrippedType {
@@ -442,7 +442,7 @@ impl<T> StripData<T> for generic::Heading<T> {
     }
 }
 
-impl<T> StripData<T> for generic::List<T> {
+impl<T: Default> StripData<T> for generic::List<T> {
     type StrippedType = List;
 
     fn strip_data(self) -> Self::StrippedType {
@@ -453,7 +453,7 @@ impl<T> StripData<T> for generic::List<T> {
     }
 }
 
-impl<T> StripData<T> for generic::ListItem<T> {
+impl<T: Default> StripData<T> for generic::ListItem<T> {
     type StrippedType = ListItem;
 
     fn strip_data(self) -> Self::StrippedType {
@@ -487,7 +487,7 @@ impl<T> StripData<T> for generic::LinkDefinition<T> {
     }
 }
 
-impl<T> StripData<T> for generic::Table<T> {
+impl<T: Default> StripData<T> for generic::Table<T> {
     type StrippedType = Table;
 
     fn strip_data(self) -> Self::StrippedType {
@@ -511,7 +511,7 @@ impl<T> StripData<T> for generic::Table<T> {
     }
 }
 
-impl<T> StripData<T> for generic::FootnoteDefinition<T> {
+impl<T: Default> StripData<T> for generic::FootnoteDefinition<T> {
     type StrippedType = FootnoteDefinition;
 
     fn strip_data(self) -> Self::StrippedType {
@@ -522,7 +522,7 @@ impl<T> StripData<T> for generic::FootnoteDefinition<T> {
     }
 }
 
-impl<T> StripData<T> for generic::GitHubAlertNode<T> {
+impl<T: Default> StripData<T> for generic::GitHubAlertNode<T> {
     type StrippedType = GitHubAlert;
 
     fn strip_data(self) -> Self::StrippedType {

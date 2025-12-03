@@ -85,7 +85,7 @@ fn test_empty_table() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert!(result.contains("#table"));
+    assert!(!result.contains("#table"));
 }
 
 #[test]
@@ -242,7 +242,7 @@ fn test_table_with_merged_cells() {
 
     let result = render_typst(&doc, Config::default());
     println!("{}", result);
-    assert!(result.contains("table.cell(colspan: 2)[\"A1\"],"));
-    assert!(result.contains("table.cell(rowspan: 2)[\"A3\"],"));
+    assert!(result.contains("table.cell(colspan: 2)[A1],"));
+    assert!(result.contains("table.cell(rowspan: 2)[A3],"));
     assert!(!result.contains("[]"));
 }

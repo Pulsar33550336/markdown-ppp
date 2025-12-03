@@ -224,10 +224,13 @@ pub trait Transformer {
     }
 
     /// Default transformation for table cells
-    fn walk_transform_table_cell(&mut self, cell: TableCell) -> TableCell {
-        cell.into_iter()
+    fn walk_transform_table_cell(&mut self, mut cell: TableCell) -> TableCell {
+        cell.content = cell
+            .content
+            .into_iter()
             .map(|inline| self.transform_inline(inline))
-            .collect()
+            .collect();
+        cell
     }
 
     /// Default transformation for list items
@@ -473,12 +476,13 @@ pub trait Transformer {
     }
 
     /// Walk table cell with expandable transformations
-    fn walk_expand_table_cell(&mut self, cell: TableCell) -> Vec<TableCell> {
-        let expanded_cell = cell
+    fn walk_expand_table_cell(&mut self, mut cell: TableCell) -> Vec<TableCell> {
+        cell.content = cell
+            .content
             .into_iter()
             .flat_map(|inline| self.expand_inline(inline))
             .collect();
-        vec![expanded_cell]
+        vec![cell]
     }
 
     /// Walk list item with expandable transformations

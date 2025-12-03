@@ -51,18 +51,17 @@ impl<'a> ToDoc<'a> for Block {
 
             Block::CodeBlock(code_block) => {
                 let lang = match &code_block.kind {
-                    CodeBlockKind::Fenced { info: Some(lang) } => lang.clone(),
-                    _ => "txt".to_string()
+                    CodeBlockKind::Fenced { info: Some(lang) } => lang.as_str(),
+                    _ => "",
                 };
                 state
                     .arena
-                    .text("#raw(block: true, lang: \"")
-                    .append(state.arena.text(lang))
-                    // .append(state.arena.hardline())
-                    .append(state.arena.text("\", \""))
+                    .text("```")
+                    .append(state.arena.text(lang.to_string()))
+                    .append(state.arena.hardline())
                     .append(state.arena.text(code_block.literal.clone()))
-                    // .append(state.arena.hardline())
-                    .append(state.arena.text("\")"))
+                    .append(state.arena.hardline())
+                    .append(state.arena.text("```"))
             }
 
             Block::HtmlBlock(html) => body(

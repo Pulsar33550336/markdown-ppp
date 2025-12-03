@@ -47,7 +47,10 @@ pub use super::{
 /// Root of a Markdown document with optional user data
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Document<T = ()> {
+pub struct Document<T = ()>
+where
+    T: Default,
+{
     /// Top‑level block sequence **in document order**.
     pub blocks: Vec<Block<T>>,
 
@@ -63,7 +66,10 @@ pub struct Document<T = ()> {
 /// Block‑level constructs in the order they appear in the CommonMark spec.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum Block<T = ()> {
+pub enum Block<T = ()>
+where
+    T: Default,
+{
     /// Ordinary paragraph
     Paragraph {
         content: Vec<Inline<T>>,
@@ -148,7 +154,10 @@ pub struct Heading<T = ()> {
 /// A list container — bullet or ordered.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct List<T = ()> {
+pub struct List<T = ()>
+where
+    T: Default,
+{
     /// Kind of list together with additional semantic data (start index or
     /// bullet marker).
     pub kind: ListKind,
@@ -175,7 +184,10 @@ pub enum ListKind {
 /// Item within a list.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ListItem<T = ()> {
+pub struct ListItem<T = ()>
+where
+    T: Default,
+{
     /// Task‑list checkbox state (GFM task‑lists). `None` ⇒ not a task list.
     pub task: Option<TaskState>,
 
@@ -236,7 +248,10 @@ pub struct LinkDefinition<T = ()> {
 /// The first row is the header row.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Table<T = ()> {
+pub struct Table<T = ()>
+where
+    T: Default,
+{
     /// Each row is a vector of *cells*; header row is **row 0**.
     pub rows: Vec<TableRow<T>>,
 
@@ -254,7 +269,10 @@ pub type TableRow<T> = Vec<TableCell<T>>;
 /// A table cell is a vector of inlines (text, links, etc.).
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct TableCell<T = ()> {
+pub struct TableCell<T = ()>
+where
+    T: Default,
+{
     pub content: Vec<Inline<T>>,
     pub colspan: Option<usize>,
     pub rowspan: Option<usize>,
@@ -268,7 +286,10 @@ pub struct TableCell<T = ()> {
 /// Footnote definition block (e.g., `[^label]: content`).
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct FootnoteDefinition<T = ()> {
+pub struct FootnoteDefinition<T = ()>
+where
+    T: Default,
+{
     /// Normalized label (without leading `^`).
     pub label: String,
 
@@ -287,7 +308,10 @@ pub struct FootnoteDefinition<T = ()> {
 /// GitHub alert block with user data support
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct GitHubAlertNode<T = ()> {
+pub struct GitHubAlertNode<T = ()>
+where
+    T: Default,
+{
     /// Type of alert (NOTE, TIP, IMPORTANT, WARNING, CAUTION)
     pub alert_type: GitHubAlertType,
 

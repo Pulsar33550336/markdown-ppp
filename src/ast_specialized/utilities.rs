@@ -74,14 +74,16 @@ pub mod id_utils {
         }
     }
 
-    impl<T> MapDataVisitor<T, ElementId> for IdAssignmentVisitor {
+    impl<T: Default> MapDataVisitor<T, ElementId> for IdAssignmentVisitor {
         fn map_data(&mut self, _data: T) -> ElementId {
             self.id_gen.generate()
         }
     }
 
     /// Add IDs to any generic document
-    pub fn add_ids_to_generic_document<T>(doc: generic::Document<T>) -> with_ids::Document {
+    pub fn add_ids_to_generic_document<T: Default>(
+        doc: generic::Document<T>,
+    ) -> with_ids::Document {
         let mut visitor = IdAssignmentVisitor::new();
         visitor.visit_document(doc)
     }

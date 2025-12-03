@@ -6,7 +6,7 @@
 use super::generic;
 
 /// A visitor that can transform user data in AST nodes
-pub trait MapDataVisitor<T, U> {
+pub trait MapDataVisitor<T: Default, U: Default> {
     /// Transform user data
     fn map_data(&mut self, data: T) -> U;
 
@@ -295,7 +295,7 @@ pub trait MapDataVisitor<T, U> {
 }
 
 /// Simple implementation using a closure
-pub struct ClosureMapDataVisitor<T, U, F>
+pub struct ClosureMapDataVisitor<T: Default, U: Default, F>
 where
     F: FnMut(T) -> U,
 {
@@ -303,7 +303,7 @@ where
     _phantom: std::marker::PhantomData<(T, U)>,
 }
 
-impl<T, U, F> ClosureMapDataVisitor<T, U, F>
+impl<T: Default, U: Default, F> ClosureMapDataVisitor<T, U, F>
 where
     F: FnMut(T) -> U,
 {
@@ -315,7 +315,7 @@ where
     }
 }
 
-impl<T, U, F> MapDataVisitor<T, U> for ClosureMapDataVisitor<T, U, F>
+impl<T: Default, U: Default, F> MapDataVisitor<T, U> for ClosureMapDataVisitor<T, U, F>
 where
     F: FnMut(T) -> U,
 {
@@ -325,7 +325,7 @@ where
 }
 
 /// Convenience function to transform user data using a closure
-pub fn map_user_data<T, U, F>(doc: generic::Document<T>, f: F) -> generic::Document<U>
+pub fn map_user_data<T: Default, U: Default, F>(doc: generic::Document<T>, f: F) -> generic::Document<U>
 where
     F: FnMut(T) -> U,
 {

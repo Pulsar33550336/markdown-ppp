@@ -74,7 +74,7 @@ fn main() {
     println!("\n✓ Generic AST functionality works without specialized types!");
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 #[allow(dead_code)]
 struct CustomMeta {
     name: String,
@@ -108,14 +108,14 @@ fn create_document_with_custom_metadata() -> generic::Document<CustomMeta> {
 }
 
 // Helper trait to chain map_data operations
-trait MapDataChain<T>: Sized {
-    fn map_data<U, F>(self, f: F) -> generic::Document<U>
+trait MapDataChain<T: Default>: Sized {
+    fn map_data<U: Default, F>(self, f: F) -> generic::Document<U>
     where
         F: FnMut(T) -> U;
 }
 
-impl<T> MapDataChain<T> for generic::Document<T> {
-    fn map_data<U, F>(self, f: F) -> generic::Document<U>
+impl<T: Default> MapDataChain<T> for generic::Document<T> {
+    fn map_data<U: Default, F>(self, f: F) -> generic::Document<U>
     where
         F: FnMut(T) -> U,
     {
