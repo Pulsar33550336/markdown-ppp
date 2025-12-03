@@ -10,15 +10,26 @@ impl<'a> ToDoc<'a> for Table {
         let column_spec = self
             .alignments
             .iter()
+            // .map(|align| match align {
+            //     Alignment::Left | Alignment::None => "auto",
+            //     Alignment::Center => "1fr",
+            //     Alignment::Right => "auto",
+            // })
             .map(|align| match align {
-                Alignment::Left | Alignment::None => "auto",
-                Alignment::Center => "1fr",
-                Alignment::Right => "auto",
+                Alignment::Left => "left + horizon",
+                Alignment::Center | Alignment::None => "center + horizon",
+                Alignment::Right => "right + horizon",
             })
             .collect::<Vec<_>>()
             .join(", ");
+        
+        let columns = Some(self.alignments.len())
+           .filter(|&len| len > 0)
+           .unwrap_or_else(|| self.rows.first().map_or(0, |row| row.len()));
+    
         content = content
-            .append(state.arena.text(format!("#table(\n  columns: ({}),", column_spec)));
+            .append(state.arena.text(format!("#figure(table(\n  columns: ({}),", columns)))
+            .append(state.arena.text(format!("\n  align: ({}),", column_spec)));  
 
         // Add header row
         if let Some(header_row) = self.rows.first() {
@@ -43,6 +54,6 @@ impl<'a> ToDoc<'a> for Table {
             content = content.append(state.arena.hardline());
         }
 
-        content.append(state.arena.text(")"))
+        content.append(state.arena.text("))"))
     }
 }
