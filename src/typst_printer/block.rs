@@ -110,13 +110,26 @@ impl<'a> ToDoc<'a> for Block {
 
 impl<'a> ToDoc<'a> for List {
     fn to_doc(&self, state: &'a crate::typst_printer::State<'a>) -> DocBuilder<'a, Arena<'a>, ()> {
-        state
+        // 根据列表类型选择前缀
+        let prefix = match self.kind {
+            ListKind::Ordered(_) => "#enum(\n[",
+            ListKind::Bullet(_) => "#list(\n[",
+        };
+        
+        // 构建列表内容
+        let list_content = state
             .arena
             .intersperse(
                 self.items.iter().map(|item| item.to_doc(self, state)),
-                state.arena.hardline(),
-            )
-            .group()
+                state.arena.text("],\n["),
+            );
+
+        // 组合前缀、内容和后缀
+        state
+            .arena
+            .text(prefix)
+            .append(list_content)
+            .append(state.arena.text("]\n)"))
     }
 }
 
@@ -126,23 +139,17 @@ impl ListItem {
         list: &List,
         state: &'a crate::typst_printer::State<'a>,
     ) -> DocBuilder<'a, Arena<'a>, ()> {
-        let marker = match list.kind {
-            ListKind::Ordered(_) => "+",
-            ListKind::Bullet(_) => "-",
-        };
+        let mut item_content = self.blocks.to_doc(state);
 
-        let mut item_content = state.arena.text(marker).append(state.arena.space());
-
+        // 处理任务列表
         if let Some(task_state) = self.task {
             let checkbox = match task_state {
-                TaskState::Complete => "[#sym.checked]",
-                TaskState::Incomplete => "[#sym.checkbox]",
+                TaskState::Complete => "[#sym.checked] ",
+                TaskState::Incomplete => "[#sym.checkbox] ",
             };
-            item_content = item_content
-                .append(state.arena.text(checkbox))
-                .append(state.arena.space());
+            item_content = state.arena.text(checkbox).append(item_content);
         }
 
-        item_content.append(self.blocks.to_doc(state)).nest(2)
+        item_content
     }
 }
