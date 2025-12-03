@@ -120,9 +120,8 @@ fn test_lists() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert!(result.contains("- Item 1"));
-    assert!(result.contains("[#sym.checked]"));
-    assert!(result.contains("+ Numbered"));
+    assert!(result.contains("#list(\n[Item 1],\n[[#sym.checked] Done item]\n)"));
+    assert!(result.contains("#enum(\n[Numbered]\n)"));
 }
 
 #[test]
