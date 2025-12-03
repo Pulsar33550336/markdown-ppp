@@ -262,7 +262,14 @@ pub struct Table {
 pub type TableRow = Vec<TableCell>;
 
 /// A table cell is a vector of inlines (text, links, etc.).
-pub type TableCell = Vec<Inline>;
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct TableCell {
+    pub content: Vec<Inline>,
+    pub colspan: Option<usize>,
+    pub rowspan: Option<usize>,
+    pub removed_by_extended_table: bool,
+}
 
 /// Specifies the alignment of a table cell.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

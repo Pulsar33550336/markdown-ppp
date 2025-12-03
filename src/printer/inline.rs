@@ -13,7 +13,7 @@ pub(crate) trait ToDocInline<'a> {
     ) -> DocBuilder<'a, Arena<'a>, ()>;
 }
 
-impl<'a> ToDocInline<'a> for Vec<Inline> {
+impl<'a> ToDocInline<'a> for [Inline] {
     fn to_doc_inline(
         &self,
         allow_newlines: bool,

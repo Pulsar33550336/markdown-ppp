@@ -22,38 +22,52 @@ impl<'a> ToDoc<'a> for Table {
             })
             .collect::<Vec<_>>()
             .join(", ");
-        
+
         let columns = Some(self.alignments.len())
-           .filter(|&len| len > 0)
-           .unwrap_or_else(|| self.rows.first().map_or(0, |row| row.len()));
-    
+            .filter(|&len| len > 0)
+            .unwrap_or_else(|| self.rows.first().map_or(0, |row| row.len()));
+
         content = content
             .append(state.arena.text(format!("#figure(table(\n  columns: ({}),", columns)))
-            .append(state.arena.text(format!("\n  align: ({}),", column_spec)));  
+            .append(state.arena.text(format!("\n  align: ({}),", column_spec)));
 
-        // Add header row
-        if let Some(header_row) = self.rows.first() {
+        // Add all rows
+        for row in &self.rows {
             content = content.append(state.arena.hardline());
-            for cell in header_row.iter() {
-                content = content
-                    .append(state.arena.text("  ["))
-                    .append(cell.to_doc(state).nest(2))
-                    .append(state.arena.text("],"));
+            for cell in row {
+                if cell.removed_by_extended_table {
+                    continue;
+                }
+
+                let mut cell_parts = Vec::new();
+                if let Some(colspan) = cell.colspan {
+                    if colspan > 1 {
+                        cell_parts.push(format!("colspan: {}", colspan));
+                    }
+                }
+                if let Some(rowspan) = cell.rowspan {
+                    if rowspan > 1 {
+                        cell_parts.push(format!("rowspan: {}", rowspan));
+                    }
+                }
+
+                let cell_doc = if cell_parts.is_empty() {
+                    state
+                        .arena
+                        .text("  [")
+                        .append(cell.content.to_doc(state).nest(2))
+                        .append(state.arena.text("],"))
+                } else {
+                    state
+                        .arena
+                        .text(format!("  table.cell({})[", cell_parts.join(", ")))
+                        .append(cell.content.to_doc(state).nest(2))
+                        .append(state.arena.text("],"))
+                };
+                content = content.append(cell_doc);
             }
         }
         content = content.append(state.arena.hardline());
-
-        // Add body rows
-        for row in self.rows.iter().skip(1) {
-            for cell in row.iter() {
-                content = content
-                    .append(state.arena.text("  ["))
-                    .append(cell.to_doc(state).nest(2))
-                    .append(state.arena.text("],"));
-            }
-            content = content.append(state.arena.hardline());
-        }
-
         content.append(state.arena.text("))"))
     }
 }

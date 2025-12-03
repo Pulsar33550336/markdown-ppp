@@ -59,7 +59,7 @@ fn assert_no_consecutive_text_in_document(doc: &Document) {
             Block::Table(table) => {
                 for row in &table.rows {
                     for cell in row {
-                        assert_no_consecutive_text_elements(cell);
+                        assert_no_consecutive_text_elements(&cell.content);
                     }
                 }
             }

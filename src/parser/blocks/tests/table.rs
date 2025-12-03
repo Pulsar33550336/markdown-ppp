@@ -16,12 +16,32 @@ fn table1() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("foo".to_owned())],
-                        vec![Inline::Text("bar".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("foo".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("bar".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("baz".to_owned())],
-                        vec![Inline::Text("bim".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("baz".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("bim".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::None, Alignment::None]
@@ -45,12 +65,32 @@ fn table2() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("foo".to_owned())],
-                        vec![Inline::Text("bar".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("foo".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("bar".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("baz".to_owned())],
-                        vec![Inline::Text("bim".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("baz".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("bim".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::Left, Alignment::Right]
@@ -74,12 +114,32 @@ fn table3() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("foo".to_owned())],
-                        vec![Inline::Text("bar".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("foo".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("bar".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("baz".to_owned())],
-                        vec![Inline::Text("b|im".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("baz".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("b|im".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::None, Alignment::None]
@@ -104,16 +164,46 @@ fn table4() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("abc".to_owned())],
-                        vec![Inline::Text("def".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("abc".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("def".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("bar".to_owned())],
-                        vec![Inline::Text("".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("bar".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("bar".to_owned())],
-                        vec![Inline::Text("baz".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("bar".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("baz".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::None, Alignment::None]
@@ -139,16 +229,46 @@ fn table5() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("header1".to_owned())],
-                        vec![Inline::Text("header2".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("header1".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("header2".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("cell1".to_owned())],
-                        vec![Inline::Text("cell2".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("cell1".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("cell2".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("cell3".to_owned())],
-                        vec![Inline::Text("cell4".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("cell3".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("cell4".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::None, Alignment::None]
@@ -174,16 +294,46 @@ fn table6() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("header1".to_owned())],
-                        vec![Inline::Text("header2".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("header1".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("header2".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("cell1".to_owned())],
-                        vec![Inline::Text("cell2".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("cell1".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("cell2".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("cell3".to_owned())],
-                        vec![Inline::Text("cell4".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("cell3".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("cell4".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::None, Alignment::None]
@@ -208,12 +358,32 @@ fn table7() {
             blocks: vec![Block::Table(Table {
                 rows: vec![
                     vec![
-                        vec![Inline::Text("Short".to_owned())],
-                        vec![Inline::Text("Very long content that would normally wrap on narrow displays but should be preserved as-is".to_owned())]
+                        TableCell {
+                            content: vec![Inline::Text("Short".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("Very long content that would normally wrap on narrow displays but should be preserved as-is".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ],
                     vec![
-                        vec![Inline::Text("A".to_owned())],
-                        vec![Inline::Text("This is another very long cell content that tests how the parser handles lengthy text".to_owned())],
+                        TableCell {
+                            content: vec![Inline::Text("A".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("This is another very long cell content that tests how the parser handles lengthy text".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        }
                     ]
                 ],
                 alignments: vec![Alignment::None, Alignment::None]
@@ -244,4 +414,65 @@ fn table_malformed_separators() {
         }
         _ => panic!("Expected block to be a table"),
     }
+}
+
+#[test]
+fn table_with_merged_cells() {
+    let doc = parse_markdown(
+        MarkdownParserState::default(),
+        "| A1 | < | A3 |
+| --- | --- | --- |
+| B1 | B2 | ^ |",
+    )
+    .unwrap();
+    assert_eq!(
+        doc,
+        Document {
+            blocks: vec![Block::Table(Table {
+                rows: vec![
+                    vec![
+                        TableCell {
+                            content: vec![Inline::Text("A1".to_owned())],
+                            colspan: Some(2),
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("<".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: true
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("A3".to_owned())],
+                            colspan: None,
+                            rowspan: Some(2),
+                            removed_by_extended_table: false
+                        }
+                    ],
+                    vec![
+                        TableCell {
+                            content: vec![Inline::Text("B1".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("B2".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: false
+                        },
+                        TableCell {
+                            content: vec![Inline::Text("^".to_owned())],
+                            colspan: None,
+                            rowspan: None,
+                            removed_by_extended_table: true
+                        }
+                    ]
+                ],
+                alignments: vec![Alignment::None, Alignment::None, Alignment::None]
+            })]
+        }
+    );
 }

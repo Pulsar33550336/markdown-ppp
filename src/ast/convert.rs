@@ -257,10 +257,15 @@ impl<T: Default> WithData<T> for Table {
                 .into_iter()
                 .map(|row| {
                     row.into_iter()
-                        .map(|cell| {
-                            cell.into_iter()
+                        .map(|cell| generic::TableCell {
+                            content: cell
+                                .content
+                                .into_iter()
                                 .map(|i| i.with_data(T::default()))
-                                .collect()
+                                .collect(),
+                            colspan: cell.colspan,
+                            rowspan: cell.rowspan,
+                            removed_by_extended_table: cell.removed_by_extended_table,
                         })
                         .collect()
                 })
@@ -492,7 +497,12 @@ impl<T> StripData<T> for generic::Table<T> {
                 .into_iter()
                 .map(|row| {
                     row.into_iter()
-                        .map(|cell| cell.into_iter().map(|i| i.strip_data()).collect())
+                        .map(|cell| TableCell {
+                            content: cell.content.into_iter().map(|i| i.strip_data()).collect(),
+                            colspan: cell.colspan,
+                            rowspan: cell.rowspan,
+                            removed_by_extended_table: cell.removed_by_extended_table,
+                        })
                         .collect()
                 })
                 .collect(),

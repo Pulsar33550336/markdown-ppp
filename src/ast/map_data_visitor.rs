@@ -199,7 +199,16 @@ pub trait MapDataVisitor<T, U> {
                 .into_iter()
                 .map(|row| {
                     row.into_iter()
-                        .map(|cell| cell.into_iter().map(|i| self.visit_inline(i)).collect())
+                        .map(|cell| generic::TableCell {
+                            content: cell
+                                .content
+                                .into_iter()
+                                .map(|i| self.visit_inline(i))
+                                .collect(),
+                            colspan: cell.colspan,
+                            rowspan: cell.rowspan,
+                            removed_by_extended_table: cell.removed_by_extended_table,
+                        })
                         .collect()
                 })
                 .collect(),

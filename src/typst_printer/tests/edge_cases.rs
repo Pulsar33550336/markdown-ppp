@@ -189,3 +189,60 @@ fn test_deeply_nested_lists() {
     let dash_count = result.matches("-").count();
     assert_eq!(dash_count, 5);
 }
+
+#[test]
+fn test_table_with_merged_cells() {
+    let doc = Document {
+        blocks: vec![Block::Table(Table {
+            rows: vec![
+                vec![
+                    TableCell {
+                        content: vec![Inline::Text("A1".to_string())],
+                        colspan: Some(2),
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
+                    TableCell {
+                        content: vec![],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: true,
+                    },
+                    TableCell {
+                        content: vec![Inline::Text("A3".to_string())],
+                        colspan: None,
+                        rowspan: Some(2),
+                        removed_by_extended_table: false,
+                    },
+                ],
+                vec![
+                    TableCell {
+                        content: vec![Inline::Text("B1".to_string())],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
+                    TableCell {
+                        content: vec![Inline::Text("B2".to_string())],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: false,
+                    },
+                    TableCell {
+                        content: vec![],
+                        colspan: None,
+                        rowspan: None,
+                        removed_by_extended_table: true,
+                    },
+                ],
+            ],
+            alignments: vec![Alignment::Left, Alignment::Center, Alignment::Right],
+        })],
+    };
+
+    let result = render_typst(&doc, Config::default());
+    println!("{}", result);
+    assert!(result.contains("table.cell(colspan: 2)[\"A1\"],"));
+    assert!(result.contains("table.cell(rowspan: 2)[\"A3\"],"));
+    assert!(!result.contains("[]"));
+}

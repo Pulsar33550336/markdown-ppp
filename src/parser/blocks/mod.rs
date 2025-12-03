@@ -102,6 +102,7 @@ pub(crate) fn block<'a>(
                         Block::Definition,
                     ),
                 ),
+                custom_parser(state.clone()),
                 conditional_block(
                     state.config.block_table_behavior.clone(),
                     map(
@@ -109,7 +110,6 @@ pub(crate) fn block<'a>(
                         Block::Table,
                     ),
                 ),
-                custom_parser(state.clone()),
                 conditional_block(
                     state.config.block_paragraph_behavior.clone(),
                     map(

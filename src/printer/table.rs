@@ -182,7 +182,7 @@ fn table_content(table: &Table) -> Vec<Vec<String>> {
     for row in &table.rows {
         let mut row_content = Vec::new();
         for cell in row {
-            let cell_content = render_cell(cell);
+            let cell_content = render_cell(&cell.content);
             row_content.push(cell_content);
         }
         content.push(row_content);
@@ -190,7 +190,7 @@ fn table_content(table: &Table) -> Vec<Vec<String>> {
     content
 }
 
-fn render_cell(doc: &Vec<Inline>) -> String {
+fn render_cell(doc: &[Inline]) -> String {
     let tmp_arena = Arena::new();
     let config = Rc::new(crate::printer::config::Config::default());
     let doc = doc.to_doc_inline(false, &tmp_arena, config);
