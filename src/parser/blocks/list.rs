@@ -5,8 +5,8 @@ use nom::combinator::verify;
 use nom::{
     branch::alt,
     character::complete::{char, one_of, space0},
-    combinator::{map, opt, peek, recognize, value},
-    multi::{many0, many_m_n},
+    combinator::{map, not, opt, peek, recognize, value},
+    multi::{many0, many1, many_m_n},
     sequence::{delimited, preceded, terminated},
     IResult, Parser,
 };
@@ -117,29 +117,29 @@ pub(crate) fn list_marker_with_span_size(
     .parse(input)
 }
 
-fn list_item_lines(
+fn list_item_rest_line(
     state: Rc<MarkdownParserState>,
     list_kind: ListKind,
     prefix_length: usize,
-) -> impl FnMut(&str) -> IResult<&str, Vec<Vec<&str>>> {
-    move |mut input: &str| {
-        let mut lines = Vec::new();
-        let mut was_blank = false;
+) -> impl FnMut(&str) -> IResult<&str, Vec<&str>> {
+    move |input: &str| {
+        // Stop parsing lines on EOF
+        if input.is_empty() {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Eof,
+            )));
+        }
 
-        loop {
-            if input.is_empty() {
-                break;
-            }
+        let marker_parser = match list_kind {
+            ListKind::Ordered(_) => list_marker_ordered,
+            ListKind::Bullet(ListBulletKind::Star) => list_marker_star,
+            ListKind::Bullet(ListBulletKind::Plus) => list_marker_plus,
+            ListKind::Bullet(ListBulletKind::Dash) => list_marker_dash,
+        };
 
-            let marker_parser = match list_kind {
-                ListKind::Ordered(_) => list_marker_ordered,
-                ListKind::Bullet(ListBulletKind::Star) => list_marker_star,
-                ListKind::Bullet(ListBulletKind::Plus) => list_marker_plus,
-                ListKind::Bullet(ListBulletKind::Dash) => list_marker_dash,
-            };
-
-            // Terminator check
-            if peek(alt((
+        line_terminated(preceded(
+            peek(not(alt((
                 value(
                     (),
                     crate::parser::blocks::thematic_break::thematic_break(state.clone()),
@@ -154,66 +154,45 @@ fn list_item_lines(
                         marker_parser,
                     ),
                 ),
-            )))
-            .parse(input)
-            .is_ok()
-            {
-                break;
-            }
-
-            // Indented line
-            let mut indented_parser = preceded(
-                many_m_n(prefix_length, prefix_length, char(' ')),
-                line_terminated(not_eof_or_eol0),
-            );
-            if let Ok((rem, content)) = indented_parser.parse(input) {
-                lines.push(vec![content]);
-                input = rem;
-                was_blank = false;
-                continue;
-            }
-
-            // Blank line
-            let mut blank_line_parser = recognize(line_terminated(space0));
-            if let Ok((rem, content)) = blank_line_parser.parse(input) {
-                if content.trim().is_empty() {
-                    lines.push(vec![content]);
-                    input = rem;
-                    was_blank = true;
-                    continue;
-                }
-            }
-
-            // Lazy continuation
-            if was_blank {
-                // After a blank line, lazy continuation is only allowed for block-level elements,
-                // not paragraphs. We'll approximate this by checking for a list marker.
-                if peek(list_marker).parse(input).is_ok() {
-                    if let Ok((rem, content)) = line_terminated(not_eof_or_eol0).parse(input) {
-                        lines.push(vec![content]);
-                        input = rem;
-                        was_blank = false;
-                        continue;
-                    }
-                }
-            } else {
-                // Continuation of a paragraph. This is a non-indented line that is not preceded
-                // by a blank line.
-                if let Ok((rem, content)) = line_terminated(not_eof_or_eol0).parse(input) {
-                    lines.push(vec![content]);
-                    input = rem;
-                    // was_blank remains false
-                    continue;
-                }
-            }
-
-            // If nothing matches, we're done with this list item
-            break;
-        }
-
-        Ok((input, lines))
+            )))),
+            alt((
+                // If starts with 0 <= prefix_length spaces
+                preceded(
+                    many_m_n(0, prefix_length, char(' ')),
+                    map(not_eof_or_eol1, |v| vec![v]),
+                ),
+                // If this is empty line, followed by prefix_length spaces
+                map(
+                    (
+                        recognize(many1(line_terminated(space0))),
+                        preceded(
+                            many_m_n(prefix_length, prefix_length, char(' ')),
+                            not_eof_or_eol1,
+                        ),
+                    ),
+                    |(newlines, content)| vec![newlines, content],
+                ),
+            )),
+        ))
+        .parse(input)
     }
 }
+
+fn list_item_lines(
+    state: Rc<MarkdownParserState>,
+    list_kind: ListKind,
+    prefix_length: usize,
+) -> impl FnMut(&str) -> IResult<&str, Vec<Vec<&str>>> {
+    move |input: &str| {
+        many0(list_item_rest_line(
+            state.clone(),
+            list_kind.clone(),
+            prefix_length,
+        ))
+        .parse(input)
+    }
+}
+
 pub(crate) fn list_item(
     state: Rc<MarkdownParserState>,
 ) -> impl FnMut(&str) -> IResult<&str, (ListKind, ListItem)> {
@@ -254,34 +233,16 @@ pub(crate) fn list(
     state: Rc<MarkdownParserState>,
 ) -> impl FnMut(&str) -> IResult<&str, crate::ast::List> {
     move |input: &str| {
-        let (mut i, (first_kind, first_item)) = list_item(state.clone())(input)?;
-        let mut items = vec![first_item];
+        let (input, items) = many1(list_item(state.clone())).parse(input)?;
 
-        loop {
-            if i.is_empty() {
-                break;
-            }
-
-            match list_item(state.clone())(i) {
-                Ok((rem, (kind, item))) => {
-                    // CommonMark spec says lists can't have items of different types.
-                    // If the type is different, we end this list.
-                    if std::mem::discriminant(&kind) == std::mem::discriminant(&first_kind) {
-                        items.push(item);
-                        i = rem;
-                    } else {
-                        break;
-                    }
-                }
-                Err(_) => break,
-            }
-        }
+        // With many1(), first element always present
+        let first_item = items.first().unwrap();
 
         let list = crate::ast::List {
-            kind: first_kind,
-            items,
+            kind: first_item.0.clone(),
+            items: items.into_iter().map(|(_, item)| item).collect(),
         };
 
-        Ok((i, list))
+        Ok((input, list))
     }
 }
