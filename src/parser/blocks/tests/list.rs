@@ -19,6 +19,56 @@ fn list1() {
 }
 
 #[test]
+fn list11() {
+    let doc = parse_markdown(
+        MarkdownParserState::default(),
+        "1. a\n   * d\n   * e\n2. b\n3. c",
+    )
+    .unwrap();
+    assert_eq!(
+        doc,
+        Document {
+            blocks: vec![Block::List(List {
+                kind: ListKind::Ordered(ListOrderedKindOptions { start: 1 }),
+                items: vec![
+                    ListItem {
+                        task: None,
+                        blocks: vec![
+                            Block::Paragraph(vec![Inline::Text("a".to_owned())]),
+                            Block::List(List {
+                                kind: ListKind::Bullet(ListBulletKind::Star),
+                                items: vec![
+                                    ListItem {
+                                        task: None,
+                                        blocks: vec![Block::Paragraph(vec![Inline::Text(
+                                            "d".to_owned()
+                                        )])]
+                                    },
+                                    ListItem {
+                                        task: None,
+                                        blocks: vec![Block::Paragraph(vec![Inline::Text(
+                                            "e".to_owned()
+                                        )])]
+                                    }
+                                ]
+                            })
+                        ]
+                    },
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph(vec![Inline::Text("b".to_owned())])]
+                    },
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph(vec![Inline::Text("c".to_owned())])]
+                    }
+                ]
+            })]
+        }
+    );
+}
+
+#[test]
 fn list2() {
     let doc = parse_markdown(MarkdownParserState::default(), "0100. a").unwrap();
     assert_eq!(
