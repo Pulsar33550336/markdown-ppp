@@ -140,6 +140,8 @@ pub struct List {
     pub items: Vec<ListItem>,
 }
 
+use std::fmt::Display;
+
 /// Specifies *what kind* of list we have.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
@@ -149,6 +151,15 @@ pub enum ListKind {
 
     /// Bullet list (`-`, `*`, or `+`) together with the concrete marker.
     Bullet(ListBulletKind),
+}
+
+impl Display for ListKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ListKind::Ordered(options) => write!(f, "{}", options.start),
+            ListKind::Bullet(bullet) => write!(f, "{}", bullet),
+        }
+    }
 }
 
 /// Specifies *what kind* of list we have.
@@ -171,6 +182,16 @@ pub enum ListBulletKind {
 
     /// `+` U+002B
     Plus,
+}
+
+impl Display for ListBulletKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ListBulletKind::Dash => write!(f, "-"),
+            ListBulletKind::Star => write!(f, "*"),
+            ListBulletKind::Plus => write!(f, "+"),
+        }
+    }
 }
 
 /// Item within a list.

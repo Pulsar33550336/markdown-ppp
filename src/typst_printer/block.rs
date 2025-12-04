@@ -136,7 +136,7 @@ impl<'a> ToDoc<'a> for List {
 impl ListItem {
     fn to_doc<'a>(
         &self,
-        list: &List,
+        _list: &List,
         state: &'a crate::typst_printer::State<'a>,
     ) -> DocBuilder<'a, Arena<'a>, ()> {
         let mut item_content = self.blocks.to_doc(state);

@@ -130,6 +130,41 @@ fn list7() {
 }
 
 #[test]
+fn lazy_continuation_lines() {
+    let markdown = r#"
+1. 将 $A_1, A_2$ 染成红色，将 $A_3$ 染成蓝色（$\color{red}{1}\color{red}{2}\color{blue}{1}$），其得分计算方式如下：
+
+- 对于 $A_1$，由于其左侧没有红色的数，所以 $C_1 = 0$。
+- 对于 $A_2$，其左侧与其最靠近的红色数为 $A_1$。由于 $A_1 \neq A_2$，所以 $C_2 = 0$。
+- 对于 $A_3$，由于其左侧没有蓝色的数，所以 $C_3 = 0$。
+  该方案最终得分为 $C_1 + C_2 + C_3 = 0$。
+
+2. 将 $A_1, A_2, A_3$ 全部染成红色（$\color{red}{121}$），其得分计算方式如下：
+
+- 对于 $A_1$，由于其左侧没有红色的数，所以 $C_1 = 0$。
+- 对于 $A_2$，其左侧与其最靠近的红色数为 $A_1$。由于 $A_1 \neq A_2$，所以 $C_2 = 0$。
+- 对于 $A_3$，其左侧与其最靠近的红色数为 $A_2$。由于 $A_2 \neq A_3$，所以 $C_3 = 0$。
+  该方案最终得分为 $C_1 + C_2 + C_3 = 0$。
+
+3. 将 $A_1, A_3$ 染成红色，将 $A_2$ 染成蓝色（$\color{red}{1}\color{blue}{2}\color{red}{1}$），其得分计算方式如下：
+
+- 对于 $A_1$，由于其左侧没有红色的数，所以 $C_1 = 0$。
+- 对于 $A_2$，由于其左侧没有蓝色的数，所以 $C_2 = 0$。
+- 对于 $A_3$，其左侧与其最靠近的红色数为 $A_1$。由于 $A_1 = A_3$，所以 $C_3 = A_3 = 1$。
+  该方案最终得分为 $C_1 + C_2 + C_3 = 1$。
+"#;
+    let doc = parse_markdown(MarkdownParserState::default(), markdown.trim()).unwrap();
+    assert_eq!(doc.blocks.len(), 1);
+    match &doc.blocks[0] {
+        Block::List(list) => {
+            assert_eq!(list.items.len(), 3);
+            assert!(matches!(list.kind, ListKind::Ordered(_)));
+        }
+        _ => panic!("Expected a single list block"),
+    }
+}
+
+#[test]
 fn list8() {
     let doc = parse_markdown(MarkdownParserState::default(), " - a\nb\n\n   c").unwrap();
     assert_eq!(
