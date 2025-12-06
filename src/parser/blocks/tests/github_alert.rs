@@ -1,6 +1,6 @@
 use crate::ast::*;
 use crate::parser::{parse_markdown, MarkdownParserState};
-use crate::printer::{render_markdown, config::Config as PrinterConfig};
+use crate::printer::{config::Config as PrinterConfig, render_markdown};
 
 #[test]
 fn github_alert_note() {
@@ -344,7 +344,7 @@ fn github_alert_custom_printer_simple() {
         blocks: vec![Block::GitHubAlert(GitHubAlert {
             alert_type: GitHubAlertType::Custom("CUSTOM".to_string()),
             blocks: vec![Block::Paragraph(vec![Inline::Text(
-                "This is a custom alert".to_string()
+                "This is a custom alert".to_string(),
             )])],
         })],
     };
@@ -359,13 +359,16 @@ fn github_alert_custom_printer_with_underscores() {
         blocks: vec![Block::GitHubAlert(GitHubAlert {
             alert_type: GitHubAlertType::Custom("MY_CUSTOM_ALERT".to_string()),
             blocks: vec![Block::Paragraph(vec![Inline::Text(
-                "Custom alert with underscores".to_string()
+                "Custom alert with underscores".to_string(),
             )])],
         })],
     };
 
     let rendered = render_markdown(&doc, PrinterConfig::default());
-    assert_eq!(rendered, "> [!MY_CUSTOM_ALERT]\n> Custom alert with underscores");
+    assert_eq!(
+        rendered,
+        "> [!MY_CUSTOM_ALERT]\n> Custom alert with underscores"
+    );
 }
 
 #[test]
@@ -374,7 +377,7 @@ fn github_alert_custom_printer_with_numbers() {
         blocks: vec![Block::GitHubAlert(GitHubAlert {
             alert_type: GitHubAlertType::Custom("ALERT123".to_string()),
             blocks: vec![Block::Paragraph(vec![Inline::Text(
-                "Custom alert with numbers".to_string()
+                "Custom alert with numbers".to_string(),
             )])],
         })],
     };
@@ -396,7 +399,10 @@ fn github_alert_custom_printer_multiline() {
     };
 
     let rendered = render_markdown(&doc, PrinterConfig::default());
-    assert_eq!(rendered, "> [!MULTILINE]\n> First paragraph\n>\n> Second paragraph");
+    assert_eq!(
+        rendered,
+        "> [!MULTILINE]\n> First paragraph\n>\n> Second paragraph"
+    );
 }
 
 // Roundtrip tests (parse -> render -> parse)
@@ -440,9 +446,18 @@ fn github_alert_standard_types_roundtrip() {
     let test_cases = [
         ("> [!NOTE]\n> This is a note", GitHubAlertType::Note),
         ("> [!TIP]\n> This is a tip", GitHubAlertType::Tip),
-        ("> [!IMPORTANT]\n> This is important", GitHubAlertType::Important),
-        ("> [!WARNING]\n> This is a warning", GitHubAlertType::Warning),
-        ("> [!CAUTION]\n> This is a caution", GitHubAlertType::Caution),
+        (
+            "> [!IMPORTANT]\n> This is important",
+            GitHubAlertType::Important,
+        ),
+        (
+            "> [!WARNING]\n> This is a warning",
+            GitHubAlertType::Warning,
+        ),
+        (
+            "> [!CAUTION]\n> This is a caution",
+            GitHubAlertType::Caution,
+        ),
     ];
 
     for (input, expected_type) in test_cases {
