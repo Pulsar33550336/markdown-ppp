@@ -1,7 +1,7 @@
 [package]
 authors = ["Evgenii Lepikhin <johnlepikhin@gmail.com>"]
 name = "markdown-ppp"
-version = "2.7.1"
+version = "2.8.0"
 edition = "2021"
 license = "MIT"
 description = "Feature-rich Markdown Parsing and Pretty-Printing library"
@@ -37,3 +37,11 @@ html-printer = ["pretty"]
 latex-printer = ["pretty"]
 typst-printer = ["pretty"]
 ast-transform = []
+
+[[example]]
+name = "ast_transform_demo"
+required-features = ["ast-transform", "parser"]
+
+[[example]]
+name = "generic_ast_example"
+required-features = ["parser"]

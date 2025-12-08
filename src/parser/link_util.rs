@@ -23,17 +23,13 @@ fn link_label_inner<'a>(
     state: Rc<MarkdownParserState>,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, Vec<crate::ast::Inline>> {
     move |input: &'a str| {
-        let (input, label_chars) = verify(
-            many1(preceded(
-                peek(not(char(']'))),
-                alt((value(']', tag("\\]")), anychar)),
-            )),
-            |chars: &[char]| chars.iter().any(|&c| c != ' ' && c != '\n') && chars.len() < 1000,
-        )
+        // Parse content with balanced brackets (handles nested [...] properly)
+        let (input, label) = verify(balanced_brackets_content, |s: &String| {
+            s.chars().any(|c| c != ' ' && c != '\n') && s.len() < 1000
+        })
         .parse(input)?;
 
-        let label = label_chars.iter().collect::<String>();
-
+        // Recursively parse the label content as inline elements
         let (_, label) = crate::parser::inline::inline_many1(state.clone())
             .parse(label.as_str())
             .map_err(|err| err.map_input(|_| input))?;
@@ -82,6 +78,59 @@ fn link_title_inner(end_delim: char) -> impl FnMut(&str) -> IResult<&str, String
 
 fn escaped_char(input: &str) -> IResult<&str, char> {
     preceded(tag("\\"), anychar).parse(input)
+}
+
+/// Maximum nesting depth for square brackets to prevent stack overflow.
+const MAX_BRACKET_DEPTH: usize = 32;
+
+/// Parses content inside square brackets, handling nested brackets and escapes.
+/// Returns the raw string content (including nested bracket pairs).
+/// Escaped brackets (\[ and \]) are converted to their literal characters.
+fn balanced_brackets_content(input: &str) -> IResult<&str, String> {
+    balanced_brackets_content_with_depth(input, 0)
+}
+
+/// Internal implementation with depth tracking to prevent stack overflow.
+fn balanced_brackets_content_with_depth(input: &str, depth: usize) -> IResult<&str, String> {
+    fold_many0(
+        move |i| {
+            alt((
+                // Escaped ] - needed for balanced bracket parsing (consume backslash)
+                map(preceded(char('\\'), char(']')), |c| c.to_string()),
+                // Other escaped characters (including \[) - preserve backslash for inline parsing
+                map(escaped_char, |c| format!("\\{c}")),
+                // Nested brackets - recursively parse if depth allows
+                move |i| {
+                    if depth < MAX_BRACKET_DEPTH {
+                        balanced_brackets_with_depth(i, depth).map(|(i, s)| (i, format!("[{s}]")))
+                    } else {
+                        // At max depth, treat [ as a literal character
+                        map(char('['), |c| c.to_string()).parse(i)
+                    }
+                },
+                // Any character except [ ] \
+                map(satisfy(|c| c != '[' && c != ']' && c != '\\'), |c| {
+                    c.to_string()
+                }),
+            ))
+            .parse(i)
+        },
+        String::new,
+        |mut acc, item| {
+            acc.push_str(&item);
+            acc
+        },
+    )
+    .parse(input)
+}
+
+/// Parses a balanced pair of square brackets: [content]
+/// Returns the content without the outer brackets.
+fn balanced_brackets_with_depth(input: &str, depth: usize) -> IResult<&str, String> {
+    let (input, _) = char('[').parse(input)?;
+    let (input, content) = balanced_brackets_content_with_depth(input, depth + 1)?;
+    let (input, _) = char(']').parse(input)?;
+    Ok((input, content))
 }
 
 pub(crate) fn link_destination(input: &str) -> IResult<&str, String> {
