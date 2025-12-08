@@ -294,7 +294,7 @@ fn test_nested_elements() {
 
     let result = render_typst(&doc, Config::default());
     assert!(result.contains("> Quote paragraph"));
-    assert!(result.contains("- Item with *bold* text"));
+    assert!(result.contains("[Item with *bold* text]"));
     assert!(result.contains("[#sym.checkbox]"));
     assert!(result.contains("```bash"));
     assert!(result.contains("echo 'nested code'"));

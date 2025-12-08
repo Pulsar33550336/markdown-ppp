@@ -72,7 +72,7 @@ fn test_empty_list_item() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert!(result.contains("-"));
+    assert!(result.contains("#list"));
 }
 
 #[test]
@@ -186,8 +186,8 @@ fn test_deeply_nested_lists() {
     };
 
     let result = render_typst(&doc, Config::default());
-    let dash_count = result.matches("-").count();
-    assert_eq!(dash_count, 5);
+    let list_count = result.matches("#list").count();
+    assert_eq!(list_count, 5);
 }
 
 #[test]

@@ -110,6 +110,9 @@ impl<'a> ToDoc<'a> for Block {
 
 impl<'a> ToDoc<'a> for List {
     fn to_doc(&self, state: &'a crate::typst_printer::State<'a>) -> DocBuilder<'a, Arena<'a>, ()> {
+        if self.items.is_empty() {
+            return state.arena.nil();
+        }
         // 根据列表类型选择前缀
         let prefix = match self.kind {
             ListKind::Ordered(_) => "#enum(\n[",
