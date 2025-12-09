@@ -6,7 +6,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{anychar, char, space0},
-    combinator::{map, not, opt, recognize, value, peek},
+    combinator::{map, not, opt, recognize, value},
     multi::{many0, many1, separated_list1},
     sequence::{delimited, preceded, terminated},
     IResult, Parser,

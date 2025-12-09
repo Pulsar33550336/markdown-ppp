@@ -48,11 +48,17 @@ impl<'a> ToDoc<'a> for Block {
 
             Block::ThematicBreak => state.arena.text("#thematic-break"),
 
-            Block::BlockQuote(blocks) => state
-                .arena
-                .text("#quote(block: true)[\n")
-                .append(blocks.to_doc(state))
-                .append("]"),
+            Block::BlockQuote(blocks) => {
+                if blocks.is_empty() {
+                    state.arena.text("#quote(block: true)[]")
+                } else {
+                    state
+                        .arena
+                        .text("#quote(block: true)[")
+                        .append(blocks.to_doc(state))
+                        .append("]")
+                }
+            }
 
             Block::List(list) => list.to_doc(state),
 
@@ -61,15 +67,27 @@ impl<'a> ToDoc<'a> for Block {
                     CodeBlockKind::Fenced { info: Some(lang) } => lang.as_str(),
                     _ => "",
                 };
-                state
-                    .arena
-                    .text("#raw(block: true, lang: \"")
-                    .append(state.arena.text(lang.to_string()))
-                    .append(state.arena.text("\", \""))
-                    // .append(state.arena.hardline())
-                    .append(state.arena.text(code_block.literal.clone()))
-                    // .append(state.arena.hardline())
-                    .append(state.arena.text("\")"))
+
+                let mut args = vec![state.arena.text("block: true")];
+                if !lang.is_empty() {
+                    args.push(
+                        state
+                            .arena
+                            .text(format!(r#", lang: "{}""#, lang)),
+                    );
+                }
+                args.push(
+                    state
+                        .arena
+                        .text(format!(r#", "{}""#, code_block.literal)),
+                );
+
+                body(
+                    &state.arena,
+                    "raw",
+                    Some(state.arena.concat(args)),
+                    vec![],
+                )
             }
 
             Block::HtmlBlock(html) => body(
@@ -99,7 +117,7 @@ impl<'a> ToDoc<'a> for Block {
                     .arena
                     .text("#rect(width: 100%, inset: 8pt, radius: 4pt, fill: luma(240), stroke: none, grid(columns: (auto, 1fr), column-gutter: 8pt, [*")
                     .append(state.arena.text(title.to_string()))
-                    .append(state.arena.text("*], ["))
+                    .append(state.arena.text("*], \n["))
                     .append(alert.blocks.to_doc(state))
                     .append(state.arena.text("]))"))
             }
@@ -121,14 +139,14 @@ impl<'a> ToDoc<'a> for List {
         }
         // 根据列表类型选择前缀
         let prefix = match self.kind {
-            ListKind::Ordered(_) => "#enum(\n[",
-            ListKind::Bullet(_) => "#list(\n[",
+            ListKind::Ordered(_) => "#enum(\n  [",
+            ListKind::Bullet(_) => "#list(\n  [",
         };
 
         // 构建列表内容
         let list_content = state.arena.intersperse(
             self.items.iter().map(|item| item.to_doc(self, state)),
-            state.arena.text("],\n["),
+            state.arena.text("],\n  ["),
         );
 
         // 组合前缀、内容和后缀
@@ -136,14 +154,14 @@ impl<'a> ToDoc<'a> for List {
             .arena
             .text(prefix)
             .append(list_content)
-            .append(state.arena.text("]\n)"))
+            .append(state.arena.text("],\n)"))
     }
 }
 
 impl ListItem {
     fn to_doc<'a>(
         &self,
-        list: &List,
+        _list: &List,
         state: &'a crate::typst_printer::State<'a>,
     ) -> DocBuilder<'a, Arena<'a>, ()> {
         // 处理 blocks，如果是段落则只渲染子节点

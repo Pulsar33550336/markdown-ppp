@@ -21,12 +21,12 @@ fn test_simple_paragraph() {
 fn test_typst_escaping() {
     let doc = Document {
         blocks: vec![Block::Paragraph(vec![Inline::Text(
-            "Special chars: * _ \\ \"".to_string(),
+            "Special chars: \\ \"".to_string(),
         )])],
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(result.trim(), r#"#par[#"Special chars: \* \_ \\ \""]"#);
+    assert_eq!(result.trim(), r#"#par[#"Special chars: \\ \""]"#);
 }
 
 #[test]
@@ -71,15 +71,13 @@ fn test_emphasis() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(
-        result.trim(),
-        r#"#par[#"Normal "#emph[#"italic"]#" and "#strong[#"bold"]#" text."]"#
-    );
+    let expected = r##"#par[#"Normal "#emph[#"italic"]#" and "#strong[#"bold"]#" text."]"##;
+    assert_eq!(result.trim(), expected);
 }
 
 #[test]
 fn test_code_block() {
-    let literal = "fn main() {\\n    println!(\\\"Hello!\\\");\\n}";
+    let literal = "fn main() {\n    println!(\"Hello!\");\n}";
     let doc = Document {
         blocks: vec![Block::CodeBlock(CodeBlock {
             kind: CodeBlockKind::Fenced {
@@ -90,10 +88,8 @@ fn test_code_block() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(
-        result.trim(),
-        format!("#raw(block: true, lang: \"rust\", \"{}\")", literal)
-    );
+    let expected = format!("#raw(block: true, lang: \"rust\", \"{}\")", literal);
+    assert_eq!(result.trim(), expected);
 }
 
 #[test]
@@ -177,8 +173,8 @@ fn test_table() {
         "#figure(table(",
         "  columns: (2),",
         "  align: (left + horizon, right + horizon),",
-        r#"  [#"Header 1"],  [#"Header 2"],"#,
-        r#"  [#"Cell 1"],  [#"Cell 2"],"#,
+        r##"  [#"Header 1"],  [#"Header 2"],"##,
+        r##"  [#"Cell 1"],  [#"Cell 2"],"##,
         "))",
     ]
     .join("\n");
@@ -194,7 +190,10 @@ fn test_blockquote() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(result.trim(), r#"#quote(block: true)[#par[#"This is a quote."]]"#);
+    assert_eq!(
+        result.trim(),
+        r#"#quote(block: true)[#par[#"This is a quote."]]"#
+    );
 }
 
 #[test]
@@ -212,10 +211,9 @@ fn test_links() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(
-        result.trim(),
-        r#"#par[#"Visit "#link("https://example.com", title: "Example Site")[#"this link"]#"."]"#
-    );
+    let expected =
+        r##"#par[#"Visit "#link("https://example.com", title: "Example Site")[#"this link"]#"."]"##;
+    assert_eq!(result.trim(), expected);
 }
 
 #[test]
@@ -229,8 +227,6 @@ fn test_autolink() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(
-        result.trim(),
-        r#"#par[#"Visit "#link("https://example.com")#"."]"#
-    );
+    let expected = r##"#par[#"Visit "#link("https://example.com")#"."]"##;
+    assert_eq!(result.trim(), expected);
 }

@@ -29,9 +29,10 @@ pub fn escape_typst(text: &str) -> String {
     text.chars()
         .map(|c| match c {
             '\\' => r"\\".to_string(),
-            // '*' => r"\*".to_string(),
-            // '_' => r"\_".to_string(),
             '"' => r#"\""#.to_string(),
+            '\t' => r"\t".to_string(),
+            '\n' => r"\n".to_string(),
+            '\r' => r"\r".to_string(),
             _ => c.to_string(),
         })
         .collect()
@@ -48,11 +49,17 @@ pub fn body<'a>(
     let mut cmd = arena.text(format!("#{name}"));
 
     if let Some(args) = args {
-        cmd = cmd.append(arena.text("(")).append(args).append(arena.text(")"));
+        cmd = cmd
+            .append(arena.text("("))
+            .append(args)
+            .append(arena.text(")"));
     }
 
     for c in content {
-        cmd = cmd.append(arena.text("[")).append(c).append(arena.text("]"));
+        cmd = cmd
+            .append(arena.text("["))
+            .append(c)
+            .append(arena.text("]"));
     }
 
     cmd
