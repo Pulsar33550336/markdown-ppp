@@ -45,7 +45,7 @@ fn test_empty_emphasis() {
     let result = render_typst(&doc, Config::default());
     assert_eq!(
         result.trim(),
-        r#"#par[#"Text with "#emph[]#" empty emphasis."]"#
+        r##"#par[#"Text with "#emph[]#" empty emphasis."]"##
     );
 }
 
@@ -117,14 +117,11 @@ fn test_empty_blockquote() {
 #[test]
 fn test_whitespace_only_text() {
     let doc = Document {
-        blocks: vec![Block::Paragraph(vec![
-            Inline::Text("   ".to_string()),
-            Inline::Text("\t\n".to_string()),
-        ])],
+        blocks: vec![Block::Paragraph(vec![Inline::Text("   \t\n".to_string())])],
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(result.trim(), r#"#par[#"   \t\n"]"#);
+    assert_eq!(result.trim(), r##"#par[#"   \t\n"]"##);
 }
 
 #[test]
@@ -140,7 +137,7 @@ fn test_special_chars_in_urls() {
     let result = render_typst(&doc, Config::default());
     assert_eq!(
         result.trim(),
-        r#"#par[#link("https://example.com/path?q=a&b=c#fragment")[#"link"]]"#
+        r##"#par[#link("https://example.com/path?q=a&b=c#fragment")[#"link"]]"##
     );
 }
 
@@ -153,7 +150,7 @@ fn test_special_chars_in_code() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(result.trim(), r#"#par[#raw("* _ \\ \"")]"#);
+    assert_eq!(result.trim(), r##"#par[#raw("* _ \\ \"")]"##);
 }
 
 #[test]
@@ -165,7 +162,7 @@ fn test_unicode_characters() {
     };
 
     let result = render_typst(&doc, Config::default());
-    assert_eq!(result.trim(), r#"#par[#"Unicode: αβγ 中文 🚀 ñáéíóú"]"#);
+    assert_eq!(result.trim(), r##"#par[#"Unicode: αβγ 中文 🚀 ñáéíóú"]"##);
 }
 
 #[test]
@@ -250,8 +247,8 @@ fn test_table_with_merged_cells() {
         "#figure(table(",
         "  columns: (3),",
         "  align: (left + horizon, center + horizon, right + horizon),",
-        r#"  table.cell(colspan: 2)[#"A1"],  table.cell(rowspan: 2)[#"A3"],"#,
-        r#"  [#"B1"],  [#"B2"],"#,
+        r##"  table.cell(colspan: 2)[#"A1"],  table.cell(rowspan: 2)[#"A3"],"##,
+        r##"  [#"B1"],  [#"B2"],"##,
         "))",
     ]
     .join("\n");

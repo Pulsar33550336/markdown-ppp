@@ -33,12 +33,13 @@ impl<'a> ToDoc<'a> for Inline {
             Inline::LineBreak => state.arena.hardline(),
 
             Inline::Code(code) => {
-                let escaped_code = code.replace('`', r"\`");
-                state
-                    .arena
-                    .text("#raw(block: false, lang: \"txt\", \"")
-                    .append(state.arena.text(escaped_code))
-                    .append(state.arena.text("\")"))
+                let escaped_code = code.replace('\\', r"\\").replace('"', r#"\""#);
+                body(
+                    &state.arena,
+                    "raw",
+                    Some(state.arena.text(format!(r#""{}""#, escaped_code))),
+                    vec![],
+                )
             }
 
             Inline::Html(html) => body(
@@ -86,13 +87,7 @@ impl<'a> ToDoc<'a> for Inline {
                         vec![text],
                     )
                 } else {
-                    state
-                        .arena
-                        .text("[")
-                        .append(link_ref.text.to_doc(state))
-                        .append(state.arena.text("]["))
-                        .append(link_ref.label.to_doc(state))
-                        .append(state.arena.text("]"))
+                    link_ref.text.to_doc(state)
                 }
             }
 
@@ -134,12 +129,16 @@ impl<'a> ToDoc<'a> for Inline {
 
             Inline::FootnoteReference(label) => {
                 if let Some(def) = state.get_footnote_definition(label) {
-                    body(
-                        &state.arena,
-                        "footnote",
-                        None,
-                        vec![def.blocks.to_doc(state)],
-                    )
+                    let content = def
+                        .blocks
+                        .iter()
+                        .map(|block| block.to_doc(state))
+                        .collect::<Vec<_>>();
+                    state
+                        .arena
+                        .text("#footnote[")
+                        .append(state.arena.concat(content))
+                        .append(state.arena.text("]"))
                 } else {
                     state
                         .arena
@@ -158,30 +157,4 @@ impl<'a> ToDoc<'a> for Inline {
                 .append(state.arena.text("\")")),
         }
     }
-}
-
-//// Split string by spaces, but keep the spaces in the result for proper word wrapping.
-fn split_with_spaces(s: &str) -> Vec<Option<&str>> {
-    let mut result = Vec::new();
-    let mut word_start: Option<usize> = None;
-
-    for (i, c) in s.char_indices() {
-        if c.is_whitespace() {
-            if let Some(start) = word_start {
-                result.push(Some(&s[start..i]));
-                word_start = None;
-            }
-            if result.last().is_none_or(|x| x.is_some()) {
-                result.push(None);
-            }
-        } else if word_start.is_none() {
-            word_start = Some(i);
-        }
-    }
-
-    if let Some(start) = word_start {
-        result.push(Some(&s[start..]));
-    }
-
-    result
 }

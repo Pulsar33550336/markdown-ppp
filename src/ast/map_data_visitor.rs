@@ -60,12 +60,10 @@ pub trait MapDataVisitor<T: Default, U: Default> {
             generic::Block::Empty { user_data } => generic::Block::Empty {
                 user_data: self.map_data(user_data),
             },
-            generic::Block::LatexBlock { content, user_data } => {
-                generic::Block::LatexBlock {
-                    content,
-                    user_data: self.map_data(user_data),
-                }
-            }
+            generic::Block::LatexBlock { content, user_data } => generic::Block::LatexBlock {
+                content,
+                user_data: self.map_data(user_data),
+            },
         }
     }
 
@@ -325,7 +323,10 @@ where
 }
 
 /// Convenience function to transform user data using a closure
-pub fn map_user_data<T: Default, U: Default, F>(doc: generic::Document<T>, f: F) -> generic::Document<U>
+pub fn map_user_data<T: Default, U: Default, F>(
+    doc: generic::Document<T>,
+    f: F,
+) -> generic::Document<U>
 where
     F: FnMut(T) -> U,
 {

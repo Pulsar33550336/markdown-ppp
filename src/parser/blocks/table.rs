@@ -6,7 +6,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{anychar, char, space0},
-    combinator::{map, not, opt, recognize, value, peek},
+    combinator::{map, not, opt, recognize, value},
     multi::{many0, many1, separated_list1},
     sequence::{delimited, preceded, terminated},
     IResult, Parser,
@@ -57,7 +57,8 @@ fn process_spans(rows: &mut Vec<TableRow>) {
                         // Find the cell above to merge into
                         let mut target_row_idx = j - 1;
                         loop {
-                            if let Some(target_cell) = rows.get(target_row_idx).and_then(|r| r.get(i))
+                            if let Some(target_cell) =
+                                rows.get(target_row_idx).and_then(|r| r.get(i))
                             {
                                 if !target_cell.removed_by_extended_table {
                                     // Found it.

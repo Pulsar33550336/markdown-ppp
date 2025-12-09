@@ -326,7 +326,9 @@ fn test_round_trip_with_wrapping_issues() {
 
         // Test with various narrow widths
         for width in [10, 15, 20, 25] {
-            let config = Config::default().with_width(width).with_smart_wrapping(true);
+            let config = Config::default()
+                .with_width(width)
+                .with_smart_wrapping(true);
             let rendered = render_markdown(&original_doc, config);
             let rendered_doc = parse_markdown(MarkdownParserState::default(), &rendered).unwrap();
 

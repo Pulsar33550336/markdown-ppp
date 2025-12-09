@@ -8,6 +8,6 @@ mod hard_newline;
 mod html_entity;
 mod image;
 mod inline_link;
+mod latex;
 mod reference_link;
 mod strikethrough;
-mod latex;

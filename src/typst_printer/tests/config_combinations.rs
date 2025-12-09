@@ -59,5 +59,5 @@ fn test_default_config() {
     let result = render_typst(&doc, Config::default());
 
     assert!(result.contains("#figure(table"));
-    assert!(result.contains("```rust"));
+    assert!(result.contains(r#"#raw(block: true, lang: "rust", ""#));
 }

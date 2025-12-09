@@ -8,7 +8,6 @@ impl<'a> ToDoc<'a> for Table {
             return state.arena.nil();
         }
 
-
         let mut content = state.arena.nil();
 
         // Add table columns specification
@@ -33,7 +32,11 @@ impl<'a> ToDoc<'a> for Table {
             .unwrap_or_else(|| self.rows.first().map_or(0, |row| row.len()));
 
         content = content
-            .append(state.arena.text(format!("#figure(table(\n  columns: ({}),", columns)))
+            .append(
+                state
+                    .arena
+                    .text(format!("#figure(table(\n  columns: ({}),", columns)),
+            )
             .append(state.arena.text(format!("\n  align: ({}),", column_spec)));
 
         // Add all rows

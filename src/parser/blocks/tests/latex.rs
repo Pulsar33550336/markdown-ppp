@@ -3,7 +3,11 @@ use crate::parser::{parse_markdown, MarkdownParserState};
 
 #[test]
 fn block_latex() {
-    let doc = parse_markdown(MarkdownParserState::default(), "$$\\sum_{i=0}^n i = \\frac{n(n+1)}{2}$$").unwrap();
+    let doc = parse_markdown(
+        MarkdownParserState::default(),
+        "$$\\sum_{i=0}^n i = \\frac{n(n+1)}{2}$$",
+    )
+    .unwrap();
     assert_eq!(
         doc,
         Document {

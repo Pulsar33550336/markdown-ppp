@@ -4,12 +4,12 @@ mod footnote_definition;
 mod github_alert;
 mod heading;
 mod html_block;
+mod latex;
 mod link_definition;
 mod list;
 pub(crate) mod paragraph;
 mod table;
 mod thematic_break;
-mod latex;
 
 #[cfg(test)]
 mod tests;
@@ -44,10 +44,7 @@ pub(crate) fn block<'a>(
                     ),
                 ),
                 // NOTE: It's important that the latex parser comes before the paragraph parser
-                map(
-                    crate::parser::blocks::latex::latex_block,
-                    |b| vec![b]
-                ),
+                map(crate::parser::blocks::latex::latex_block, |b| vec![b]),
                 conditional_block(
                     state.config.block_heading_v2_behavior.clone(),
                     crate::parser::blocks::heading::heading_v2_or_paragraph(state.clone()),

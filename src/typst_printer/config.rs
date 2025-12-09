@@ -30,9 +30,7 @@ impl Default for Config {
     /// Default settings:
     /// - Width: 80 characters
     fn default() -> Self {
-        Self {
-            width: 80,
-        }
+        Self { width: 80 }
     }
 }
 

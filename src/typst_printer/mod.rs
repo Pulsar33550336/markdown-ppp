@@ -235,7 +235,11 @@ fn get_indices(
         }
     }
 
-    process_blocks(&ast.blocks, &mut footnote_definitions, &mut link_definitions);
+    process_blocks(
+        &ast.blocks,
+        &mut footnote_definitions,
+        &mut link_definitions,
+    );
 
     (footnote_definitions, link_definitions)
 }
