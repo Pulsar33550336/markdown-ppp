@@ -51,6 +51,46 @@ fn table1() {
 }
 
 #[test]
+fn table_with_complex_spans() {
+    let doc = parse_markdown(
+        MarkdownParserState::default(),
+        "| A | B | C |
+|:-:|:-:|:-:|
+| D | < | E |
+| ^ | < | F |",
+    )
+    .unwrap();
+    assert_eq!(
+        doc,
+        Document {
+            blocks: vec![Block::Table(Table {
+                rows: vec![
+                    // Header row
+                    vec![
+                        TableCell { content: vec![Inline::Text("A".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: false },
+                        TableCell { content: vec![Inline::Text("B".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: false },
+                        TableCell { content: vec![Inline::Text("C".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: false },
+                    ],
+                    // Data row 1
+                    vec![
+                        TableCell { content: vec![Inline::Text("D".to_owned())], colspan: Some(2), rowspan: Some(2), removed_by_extended_table: false },
+                        TableCell { content: vec![Inline::Text("<".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: true },
+                        TableCell { content: vec![Inline::Text("E".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: false },
+                    ],
+                    // Data row 2
+                    vec![
+                        TableCell { content: vec![Inline::Text("^".to_owned())], colspan: Some(2), rowspan: None, removed_by_extended_table: true },
+                        TableCell { content: vec![Inline::Text("<".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: true },
+                        TableCell { content: vec![Inline::Text("F".to_owned())], colspan: None, rowspan: None, removed_by_extended_table: false },
+                    ],
+                ],
+                alignments: vec![Alignment::Center, Alignment::Center, Alignment::Center]
+            })]
+        }
+    );
+}
+
+#[test]
 fn table2() {
     let doc = parse_markdown(
         MarkdownParserState::default(),
@@ -445,7 +485,7 @@ fn table_with_merged_cells() {
                         },
                         TableCell {
                             content: vec![Inline::Text("A3".to_owned())],
-                            colspan: None,
+                            colspan: Some(1),
                             rowspan: Some(2),
                             removed_by_extended_table: false
                         }

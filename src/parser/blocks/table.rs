@@ -44,45 +44,7 @@ pub(crate) fn table<'a>(
 }
 
 fn process_spans(rows: &mut Vec<TableRow>) {
-    // Process rowspans first, column by column
-    if rows.len() > 1 && !rows.is_empty() && !rows[0].is_empty() {
-        for i in 0..rows[0].len() {
-            // for each column
-            for j in 1..rows.len() {
-                // for each row, starting from the second
-                if let Some(cell) = rows[j].get(i) {
-                    if !cell.removed_by_extended_table
-                        && cell.content == vec![Inline::Text("^".to_string())]
-                    {
-                        // Find the cell above to merge into
-                        let mut target_row_idx = j - 1;
-                        loop {
-                            if let Some(target_cell) =
-                                rows.get(target_row_idx).and_then(|r| r.get(i))
-                            {
-                                if !target_cell.removed_by_extended_table {
-                                    // Found it.
-                                    let source_rowspan = rows[j][i].rowspan.unwrap_or(1);
-                                    let target_cell_mut = &mut rows[target_row_idx][i];
-                                    let target_rowspan = target_cell_mut.rowspan.get_or_insert(1);
-                                    *target_rowspan += source_rowspan;
-
-                                    rows[j][i].removed_by_extended_table = true;
-                                    break;
-                                }
-                            }
-                            if target_row_idx == 0 {
-                                break;
-                            }
-                            target_row_idx -= 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Now process colspans, row by row
+    // Process colspans first, row by row
     for row in rows.iter_mut() {
         if !row.is_empty() {
             for i in 1..row.len() {
@@ -110,6 +72,51 @@ fn process_spans(rows: &mut Vec<TableRow>) {
                                 break;
                             }
                             target_col_idx -= 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Now process rowspans, column by column
+    if rows.len() > 1 && !rows.is_empty() && !rows[0].is_empty() {
+        for i in 0..rows[0].len() {
+            // for each column
+            for j in 1..rows.len() {
+                // for each row, starting from the second
+                if let Some(cell) = rows[j].get(i) {
+                    if !cell.removed_by_extended_table
+                        && cell.content == vec![Inline::Text("^".to_string())]
+                    {
+                        // Find the cell above to merge into
+                        let mut target_row_idx = j - 1;
+                        loop {
+                            if let Some(target_cell) =
+                                rows.get(target_row_idx).and_then(|r| r.get(i))
+                            {
+                                if !target_cell.removed_by_extended_table {
+                                    // Found it.
+                                    let source_rowspan = rows[j][i].rowspan.unwrap_or(1);
+                                    let source_colspan = rows[j][i].colspan;
+                                    let target_cell_mut = &mut rows[target_row_idx][i];
+                                    let target_rowspan = target_cell_mut.rowspan.get_or_insert(1);
+                                    *target_rowspan += source_rowspan;
+
+                                    let target_colspan = target_cell_mut.colspan.get_or_insert(1);
+                                    if let Some(source_colspan) = source_colspan {
+                                        *target_colspan =
+                                            std::cmp::max(*target_colspan, source_colspan);
+                                    }
+
+                                    rows[j][i].removed_by_extended_table = true;
+                                    break;
+                                }
+                            }
+                            if target_row_idx == 0 {
+                                break;
+                            }
+                            target_row_idx -= 1;
                         }
                     }
                 }
