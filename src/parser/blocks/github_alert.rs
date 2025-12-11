@@ -67,17 +67,24 @@ pub(crate) fn github_alert<'a>(
         };
 
         // Now parse the rest of the blockquote lines
-        let prefix = preceded(many_m_n(0, 3, char(' ')), char('>'));
-        let (input, mut lines) =
+        // Block quote marker: 0-3 leading spaces, '>', optional space
+        // Per CommonMark spec, the space after '>' is part of the marker and should be stripped
+        let prefix = preceded(many_m_n(0, 3, char(' ')), (char('>'), opt(char(' '))));
+        let (input, lines) =
             many1(preceded(prefix, line_terminated(not_eof_or_eol0))).parse(input)?;
 
         // Remove the first line (alert marker) and join the rest
-        lines.remove(0); // Remove the alert marker line completely
-        let inner = lines.join("\n");
+        // Use slice instead of remove(0) to avoid panic on empty vec (although many1 guarantees at least one)
+        let inner = if lines.len() > 1 {
+            lines[1..].join("\n")
+        } else {
+            String::new()
+        };
 
         // Parse the inner content as blocks
+        let nested_state = Rc::new(state.nested());
         let (_, blocks) = if !inner.is_empty() {
-            many1(crate::parser::blocks::block(state.clone()))
+            many1(crate::parser::blocks::block(nested_state))
                 .parse(&inner)
                 .map_err(|err| err.map_input(|_| input))?
         } else {
