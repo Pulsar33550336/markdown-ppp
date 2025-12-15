@@ -46,11 +46,18 @@ pub(crate) fn code_block_indented<'a>(
 }
 
 pub(crate) fn code_block_fenced<'a>(
-    _state: Rc<MarkdownParserState>,
+    state: Rc<MarkdownParserState>,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, CodeBlock> {
     move |input: &'a str| {
         let (input, space_prefix) = many_m_n(0, 3, char(' ')).parse(input)?;
-        let prefix_length = space_prefix.len();
+        // Only strip prefix indentation when NOT in nested context.
+        // In nested context (inside list items, blockquotes, etc.), the container
+        // parser already stripped the container's indentation from the content.
+        let prefix_length = if state.is_nested_block_context {
+            0
+        } else {
+            space_prefix.len()
+        };
 
         let (input, (fence, info)) = line_terminated((
             recognize(alt((

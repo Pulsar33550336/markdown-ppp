@@ -3,6 +3,7 @@ use crate::parser::util::*;
 use crate::parser::MarkdownParserState;
 use nom::{
     character::complete::char,
+    combinator::opt,
     multi::{many1, many_m_n},
     sequence::preceded,
     IResult, Parser,
@@ -13,13 +14,16 @@ pub(crate) fn blockquote<'a>(
     state: Rc<MarkdownParserState>,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, Vec<Block>> {
     move |input: &'a str| {
-        let prefix = preceded(many_m_n(0, 3, char(' ')), char('>'));
+        // Block quote marker: 0-3 leading spaces, '>', optional space
+        // Per CommonMark spec, the space after '>' is part of the marker and should be stripped
+        let prefix = preceded(many_m_n(0, 3, char(' ')), (char('>'), opt(char(' '))));
 
         let (input, lines) =
             many1(preceded(prefix, line_terminated(not_eof_or_eol0))).parse(input)?;
         let inner = lines.join("\n");
 
-        let (_, inner) = many1(crate::parser::blocks::block(state.clone()))
+        let nested_state = Rc::new(state.nested());
+        let (_, inner) = many1(crate::parser::blocks::block(nested_state))
             .parse(&inner)
             .map_err(|err| err.map_input(|_| input))?;
 

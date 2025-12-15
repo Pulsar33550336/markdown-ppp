@@ -59,13 +59,36 @@ impl<'a> ToDoc<'a> for Block {
                 match kind {
                     CodeBlockKind::Fenced { info } => {
                         let info = info.as_deref().unwrap_or("");
-                        arena
-                            .text(format!("```{info}\n"))
-                            .append(arena.text(literal.clone()))
-                            .append(arena.text("\n```"))
+                        // Use hardline() between lines so nest() indentation applies correctly
+                        // when the code block is inside a list or other nested structure.
+                        // We use split('\n') instead of lines() to preserve trailing newlines.
+                        let mut doc = arena.text(format!("```{info}"));
+
+                        // Handle code block content.
+                        // For non-empty content, we use split('\n') instead of lines() to preserve
+                        // trailing newlines. Each line gets a hardline() before it so that nest()
+                        // indentation applies correctly when inside lists or other nested structures.
+                        // IMPORTANT: For blank lines (empty or whitespace-only), we only add
+                        // hardline() without any text, so that nest() doesn't compound whitespace
+                        // on repeated format passes. This ensures idempotent formatting.
+                        if !literal.is_empty() {
+                            let lines: Vec<&str> = literal.split('\n').collect();
+                            for line in lines {
+                                doc = doc.append(arena.hardline());
+                                // Only add text for lines with non-whitespace content.
+                                // This prevents whitespace from compounding on each format pass.
+                                let trimmed = line.trim_start();
+                                if !trimmed.is_empty() {
+                                    doc = doc.append(arena.text(line.to_string()));
+                                }
+                            }
+                        }
+
+                        // Closing fence must be on its own line
+                        doc.append(arena.hardline()).append(arena.text("```"))
                     }
                     CodeBlockKind::Indented => {
-                        // каждый строка с отступом 4 пробела
+                        // Each line indented with 4 spaces
                         let indented = literal
                             .lines()
                             .map(|l| format!("    {l}"))

@@ -37,7 +37,8 @@ pub(crate) fn footnote_definition<'a>(
             footnote_content.push_str(line)
         }
 
-        let (_, blocks) = many0(crate::parser::blocks::block(state.clone()))
+        let nested_state = Rc::new(state.nested());
+        let (_, blocks) = many0(crate::parser::blocks::block(nested_state))
             .parse(&footnote_content)
             .map_err(|err| err.map_input(|_| input))?;
 

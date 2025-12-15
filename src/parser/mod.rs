@@ -82,9 +82,16 @@ use std::rc::Rc;
 /// let config = MarkdownParserConfig::default();
 /// let state = MarkdownParserState::with_config(config);
 /// ```
+/// Note: This struct is marked `#[non_exhaustive]` to allow adding new fields
+/// in future versions without breaking existing code.
+#[non_exhaustive]
 pub struct MarkdownParserState {
     /// The parser configuration (reference-counted for efficient cloning)
     pub config: Rc<MarkdownParserConfig>,
+    /// Whether we are parsing content extracted from a container block (list item, blockquote, etc.)
+    /// When true, fenced code blocks should not strip additional indentation from their content.
+    /// This field is for internal use only.
+    pub(crate) is_nested_block_context: bool,
 }
 
 impl MarkdownParserState {
@@ -118,6 +125,19 @@ impl MarkdownParserState {
     pub fn with_config(config: MarkdownParserConfig) -> Self {
         Self {
             config: Rc::new(config),
+            is_nested_block_context: false,
+        }
+    }
+
+    /// Create a nested parser state for parsing content extracted from container blocks
+    ///
+    /// This method creates a new state that shares the same configuration but marks
+    /// the parsing context as nested. This prevents double-stripping of indentation
+    /// when parsing fenced code blocks inside list items, blockquotes, etc.
+    pub(crate) fn nested(&self) -> Self {
+        Self {
+            config: self.config.clone(),
+            is_nested_block_context: true,
         }
     }
 }
