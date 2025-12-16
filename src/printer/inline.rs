@@ -93,11 +93,31 @@ impl<'a> ToDocInline<'a> for Inline {
                 destination,
                 title,
                 alt,
+                attr,
             }) => {
                 let title_part = title
                     .as_ref()
                     .map(|t| format!(" \"{t}\""))
                     .unwrap_or_default();
+
+                let attr_part = attr
+                    .as_ref()
+                    .map(|a| {
+                        let mut attrs = Vec::new();
+                        if let Some(width) = &a.width {
+                            attrs.push(format!("width=\"{}\"", width));
+                        }
+                        if let Some(height) = &a.height {
+                            attrs.push(format!("height=\"{}\"", height));
+                        }
+                        if attrs.is_empty() {
+                            String::new()
+                        } else {
+                            format!("{{{}}}", attrs.join(" "))
+                        }
+                    })
+                    .unwrap_or_default();
+
                 arena
                     .text("![")
                     .append(arena.text(alt.clone()))
@@ -105,6 +125,7 @@ impl<'a> ToDocInline<'a> for Inline {
                     .append(arena.text(destination.clone()))
                     .append(arena.text(title_part))
                     .append(arena.text(")"))
+                    .append(arena.text(attr_part))
             }
             Inline::Autolink(link) => arena.text(format!("<{link}>")),
             Inline::FootnoteReference(label) => arena.text(format!("[^{label}]")),

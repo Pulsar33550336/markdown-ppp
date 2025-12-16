@@ -11,6 +11,7 @@ fn image1() {
                 destination: "/url".to_owned(),
                 title: Some("title".to_owned()),
                 alt: "foo".to_owned(),
+                attr: None,
             })])]
         }
     );
@@ -26,6 +27,7 @@ fn image2() {
                 destination: "train.jpg".to_owned(),
                 title: None,
                 alt: "foo".to_owned(),
+                attr: None,
             })])]
         }
     );
@@ -41,6 +43,7 @@ fn image3() {
                 destination: "url".to_owned(),
                 title: None,
                 alt: "foo".to_owned(),
+                attr: None,
             })])]
         }
     );
@@ -56,6 +59,7 @@ fn image4() {
                 destination: "train.jpg".to_owned(),
                 title: None,
                 alt: "".to_owned(),
+                attr: None,
             })])]
         }
     );

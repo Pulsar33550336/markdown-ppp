@@ -353,6 +353,16 @@ pub enum Inline {
     Empty,
 }
 
+/// Attributes for an image.
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Default)]
+#[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ImageAttributes {
+    /// Width of the image.
+    pub width: Option<String>,
+    /// Height of the image.
+    pub height: Option<String>,
+}
+
 /// Re‑usable structure for links and images (destination + children).
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
@@ -379,6 +389,10 @@ pub struct Image {
 
     /// Alternative text.
     pub alt: String,
+
+    /// Image attributes.
+    #[cfg_attr(feature = "ast-serde", serde(default))]
+    pub attr: Option<ImageAttributes>,
 }
 
 /// Reference-style link (e.g., `[text][label]` or `[label][]`).

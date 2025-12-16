@@ -20,6 +20,7 @@ fn inline_link_with_nested_image() {
                     destination: "https://img.shields.io/badge/userstyles-green".to_owned(),
                     title: None,
                     alt: "userstyles".to_owned(),
+                    attr: None,
                 })]
             })])]
         }
@@ -90,6 +91,7 @@ fn inline_link_badge_pattern() {
                     destination: "https://travis-ci.org/user/repo.svg".to_owned(),
                     title: None,
                     alt: "Build Status".to_owned(),
+                    attr: None,
                 })]
             })])]
         }
@@ -186,12 +188,14 @@ fn inline_link_multiple_images() {
                         destination: "url1".to_owned(),
                         title: None,
                         alt: "a".to_owned(),
+                        attr: None,
                     }),
                     Inline::Text(" ".to_owned()),
                     Inline::Image(Image {
                         destination: "url2".to_owned(),
                         title: None,
                         alt: "b".to_owned(),
+                        attr: None,
                     }),
                 ]
             })])]

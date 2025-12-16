@@ -1,7 +1,13 @@
 use crate::ast::*;
 use crate::typst_printer::util::{body, escape_typst};
 use crate::typst_printer::ToDoc;
+use once_cell::sync::Lazy;
 use pretty::{Arena, DocAllocator, DocBuilder};
+use regex::Regex;
+
+static TYPST_RELATIVE_VALUE_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^(?: *[+-]? *(?:\d+(?:\.\d+)?|\.\d+)(?:pt|mm|cm|in|em|%))(?: *[+-] *(?:\d+(?:\.\d+)?|\.\d+)(?:pt|mm|cm|in|em|%))* *$").unwrap()
+});
 
 impl<'a> ToDoc<'a> for Vec<Inline> {
     fn to_doc(&self, state: &'a crate::typst_printer::State<'a>) -> DocBuilder<'a, Arena<'a>, ()> {
@@ -94,9 +100,21 @@ impl<'a> ToDoc<'a> for Inline {
             Inline::Image(image) => {
                 let url = escape_typst(&image.destination);
                 let alt = escape_typst(&image.alt);
-                state
-                    .arena
-                    .text(format!("#box(image(\"{url}\", alt: \"{alt}\"))"))
+                let mut res = format!("#box(image(\"{url}\", alt: \"{alt}\"");
+                if let Some(attr) = &image.attr {
+                    if let Some(width) = &attr.width {
+                        if TYPST_RELATIVE_VALUE_REGEX.is_match(width) {
+                            res.push_str(&format!(", width: {width}"));
+                        }
+                    }
+                    if let Some(height) = &attr.height {
+                        if TYPST_RELATIVE_VALUE_REGEX.is_match(height) {
+                            res.push_str(&format!(", height: {height}"));
+                        }
+                    }
+                }
+                res.push_str("))");
+                state.arena.text(res)
             }
 
             Inline::Emphasis(content) => state

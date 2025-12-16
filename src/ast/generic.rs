@@ -434,6 +434,16 @@ pub struct Link<T = ()> {
     pub user_data: T,
 }
 
+/// Attributes for an image.
+#[derive(Debug, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ImageAttributes {
+    /// Width of the image.
+    pub width: Option<String>,
+    /// Height of the image.
+    pub height: Option<String>,
+}
+
 /// Re‑usable structure for images.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
@@ -446,6 +456,10 @@ pub struct Image<T = ()> {
 
     /// Alternative text.
     pub alt: String,
+
+    /// Image attributes.
+    #[cfg_attr(feature = "ast-serde", serde(default))]
+    pub attr: Option<ImageAttributes>,
 
     /// User-defined data associated with this image
     #[cfg_attr(feature = "ast-serde", serde(default))]

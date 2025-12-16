@@ -7,6 +7,7 @@ mod footnote_reference;
 mod hard_newline;
 mod html_entity;
 mod image;
+mod image_attr;
 mod inline_link;
 mod latex;
 mod reference_link;

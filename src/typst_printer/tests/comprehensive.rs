@@ -187,11 +187,57 @@ fn test_image() {
             destination: "image.png".to_string(),
             title: Some("My Image".to_string()),
             alt: "Alt text".to_string(),
+            attr: Some(ImageAttributes {
+                width: Some("100pt".to_string()),
+                height: Some("50pt".to_string()),
+            }),
         })])],
     };
 
     let result = render_typst(&doc, Config::default());
-    assert!(result.contains("image(\"image.png\", alt: \"Alt text\")"));
+    assert!(result.contains("image(\"image.png\", alt: \"Alt text\""));
+    assert!(result.contains(", width: 100pt"));
+    assert!(result.contains(", height: 50pt"));
+}
+
+#[test]
+fn test_image_with_single_attribute() {
+    let doc = Document {
+        blocks: vec![Block::Paragraph(vec![Inline::Image(Image {
+            destination: "image.png".to_string(),
+            title: Some("My Image".to_string()),
+            alt: "Alt text".to_string(),
+            attr: Some(ImageAttributes {
+                width: Some("100pt".to_string()),
+                height: None,
+            }),
+        })])],
+    };
+
+    let result = render_typst(&doc, Config::default());
+    assert!(result.contains("image(\"image.png\", alt: \"Alt text\""));
+    assert!(result.contains(", width: 100pt"));
+    assert!(!result.contains(", height:"));
+}
+
+#[test]
+fn test_image_with_invalid_attribute() {
+    let doc = Document {
+        blocks: vec![Block::Paragraph(vec![Inline::Image(Image {
+            destination: "image.png".to_string(),
+            title: Some("My Image".to_string()),
+            alt: "Alt text".to_string(),
+            attr: Some(ImageAttributes {
+                width: Some("invalid".to_string()),
+                height: Some("50pt".to_string()),
+            }),
+        })])],
+    };
+
+    let result = render_typst(&doc, Config::default());
+    assert!(result.contains("image(\"image.png\", alt: \"Alt text\""));
+    assert!(!result.contains(", width:"));
+    assert!(result.contains(", height: 50pt"));
 }
 
 #[test]

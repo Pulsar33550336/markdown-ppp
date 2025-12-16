@@ -267,6 +267,7 @@ pub trait MapDataVisitor<T: Default, U: Default> {
             destination: image.destination,
             title: image.title,
             alt: image.alt,
+            attr: image.attr,
             user_data: self.map_data(image.user_data),
         }
     }

@@ -333,6 +333,10 @@ impl<T: Default> WithData<T> for Image {
             destination: self.destination,
             title: self.title,
             alt: self.alt,
+            attr: self.attr.map(|a| generic::ImageAttributes {
+                width: a.width,
+                height: a.height,
+            }),
             user_data: data,
         }
     }
@@ -553,6 +557,10 @@ impl<T> StripData<T> for generic::Image<T> {
             destination: self.destination,
             title: self.title,
             alt: self.alt,
+            attr: self.attr.map(|a| ImageAttributes {
+                width: a.width,
+                height: a.height,
+            }),
         }
     }
 }
