@@ -74,28 +74,34 @@ use std::{collections::HashMap, rc::Rc};
 ///
 /// This structure holds the rendering context including the pretty-printer arena,
 /// configuration, and pre-processed indices for footnotes and link definitions.
+#[derive(Clone)]
 pub(crate) struct State<'a> {
-    arena: Arena<'a>,
-    config: crate::typst_printer::config::Config,
+    arena: &'a Arena<'a>,
+    config: &'a crate::typst_printer::config::Config,
     /// Mapping of footnote labels to their definitions.
-    footnote_definitions: HashMap<String, FootnoteDefinition>,
+    footnote_definitions: &'a HashMap<String, FootnoteDefinition>,
     /// Mapping of link labels to their definitions.
-    link_definitions: HashMap<Vec<Inline>, LinkDefinition>,
+    link_definitions: &'a HashMap<Vec<Inline>, LinkDefinition>,
+    render_with_hash: bool,
 }
 
-impl State<'_> {
+impl<'a> State<'a> {
     /// Create a new rendering state
     ///
     /// This processes the AST to build indices for footnotes and link definitions,
     /// which are needed for proper cross-referencing during rendering.
-    pub fn new(config: crate::typst_printer::config::Config, ast: &Document) -> Self {
-        let (footnote_definitions, link_definitions) = get_indices(ast);
-        let arena = Arena::new();
+    pub fn new(
+        arena: &'a Arena<'a>,
+        config: &'a crate::typst_printer::config::Config,
+        footnote_definitions: &'a HashMap<String, FootnoteDefinition>,
+        link_definitions: &'a HashMap<Vec<Inline>, LinkDefinition>,
+    ) -> Self {
         Self {
             arena,
             config,
             footnote_definitions,
             link_definitions,
+            render_with_hash: true,
         }
     }
 
@@ -165,11 +171,13 @@ impl State<'_> {
 /// // - [*Bold*] item
 /// ```
 pub fn render_typst(ast: &Document, config: crate::typst_printer::config::Config) -> String {
-    let state = Rc::new(State::new(config, ast));
+    let (footnote_definitions, link_definitions) = get_indices(ast);
+    let arena = Arena::new();
+    let state = State::new(&arena, &config, &footnote_definitions, &link_definitions);
     let doc = ast.to_doc(&state);
 
     let mut buf = Vec::new();
-    doc.render(state.config.width, &mut buf).unwrap();
+    doc.render(config.width, &mut buf).unwrap();
     String::from_utf8(buf).unwrap()
 }
 
