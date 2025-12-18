@@ -1,5 +1,6 @@
 mod blockquote;
 mod code_block;
+mod container;
 mod footnote_definition;
 mod github_alert;
 mod heading;
@@ -42,6 +43,10 @@ pub(crate) fn block<'a>(
                         crate::parser::blocks::heading::heading_v1(state.clone()),
                         Block::Heading,
                     ),
+                ),
+                conditional_block(
+                    state.config.block_container_behavior.clone(),
+                    crate::parser::blocks::container::container(state.clone()),
                 ),
                 // NOTE: It's important that the latex parser comes before the paragraph parser
                 map(crate::parser::blocks::latex::latex_block, |b| vec![b]),

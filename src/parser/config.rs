@@ -82,6 +82,9 @@ pub struct MarkdownParserConfig {
     /// The behavior of the parser when encountering block paragraphs.
     pub(crate) block_paragraph_behavior: ElementBehavior<crate::ast::Block>,
 
+    /// The behavior of the parser when encountering container blocks.
+    pub(crate) block_container_behavior: ElementBehavior<crate::ast::Block>,
+
     /// The behavior of the parser when encountering inline autolinks.
     pub(crate) inline_autolink_behavior: ElementBehavior<crate::ast::Inline>,
 
@@ -136,6 +139,7 @@ impl Default for MarkdownParserConfig {
             block_link_definition_behavior: ElementBehavior::Parse,
             block_table_behavior: ElementBehavior::Parse,
             block_paragraph_behavior: ElementBehavior::Parse,
+            block_container_behavior: ElementBehavior::Parse,
             inline_autolink_behavior: ElementBehavior::Parse,
             inline_link_behavior: ElementBehavior::Parse,
             inline_footnote_reference_behavior: ElementBehavior::Parse,
@@ -302,6 +306,17 @@ impl MarkdownParserConfig {
     ) -> Self {
         Self {
             block_paragraph_behavior: behavior,
+            ..self
+        }
+    }
+
+    /// Set the behavior of the parser when encountering container blocks.
+    pub fn with_block_container_behavior(
+        self,
+        behavior: ElementBehavior<crate::ast::Block>,
+    ) -> Self {
+        Self {
+            block_container_behavior: behavior,
             ..self
         }
     }

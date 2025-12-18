@@ -105,6 +105,25 @@ impl<T: Default> WithData<T> for Block {
                 user_data: data,
             },
             Block::Empty => generic::Block::Empty { user_data: data },
+            Block::Container(container) => {
+                generic::Block::Container(container.with_data(data))
+            }
+        }
+    }
+}
+
+impl<T: Default> WithData<T> for Container {
+    type WithDataType = generic::Container<T>;
+
+    fn with_data(self, data: T) -> Self::WithDataType {
+        generic::Container {
+            kind: self.kind,
+            blocks: self
+                .blocks
+                .into_iter()
+                .map(|b| b.with_data(T::default()))
+                .collect(),
+            user_data: data,
         }
     }
 }
@@ -400,6 +419,7 @@ impl<T: Default> StripData<T> for generic::Block<T> {
             generic::Block::GitHubAlert(alert) => Block::GitHubAlert(alert.strip_data()),
             generic::Block::LatexBlock { content, .. } => Block::LatexBlock(content),
             generic::Block::Empty { .. } => Block::Empty,
+            generic::Block::Container(container) => Block::Container(container.strip_data()),
         }
     }
 }
@@ -572,6 +592,17 @@ impl<T> StripData<T> for generic::LinkReference<T> {
         LinkReference {
             label: self.label.into_iter().map(|i| i.strip_data()).collect(),
             text: self.text.into_iter().map(|i| i.strip_data()).collect(),
+        }
+    }
+}
+
+impl<T: Default> StripData<T> for generic::Container<T> {
+    type StrippedType = Container;
+
+    fn strip_data(self) -> Self::StrippedType {
+        Container {
+            kind: self.kind,
+            blocks: self.blocks.into_iter().map(|b| b.strip_data()).collect(),
         }
     }
 }

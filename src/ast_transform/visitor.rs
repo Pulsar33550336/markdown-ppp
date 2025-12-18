@@ -174,6 +174,11 @@ pub trait Visitor {
             }
             // Terminal nodes - no traversal needed
             Block::ThematicBreak | Block::HtmlBlock(_) | Block::Empty | Block::LatexBlock(_) => {}
+            Block::Container(container) => {
+                for block in &container.blocks {
+                    self.visit_block(block);
+                }
+            }
         }
     }
 

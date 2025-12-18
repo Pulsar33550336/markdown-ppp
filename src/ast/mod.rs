@@ -89,6 +89,20 @@ pub enum Block {
 
     /// Empty block. This is used to represent skipped blocks in the AST.
     Empty,
+
+    /// A container block.
+    Container(Container),
+}
+
+/// A container block.
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Container {
+    /// The kind of the container.
+    pub kind: String,
+
+    /// The blocks inside the container.
+    pub blocks: Vec<Block>,
 }
 
 /// Heading with level 1–6 and inline content.

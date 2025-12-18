@@ -1,5 +1,6 @@
 mod blockquote;
 mod code_block;
+mod container;
 mod custom_parser;
 mod footnote_definition;
 mod github_alert;

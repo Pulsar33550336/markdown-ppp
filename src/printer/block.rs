@@ -121,6 +121,15 @@ impl<'a> ToDoc<'a> for Block {
                 crate::printer::github_alert::github_alert_to_doc(alert, config, arena)
             }
             Block::LatexBlock(latex) => arena.text(format!("$${}$$", latex)),
+            Block::Container(container) => {
+                let mut doc = arena.text(format!(":::{}", container.kind));
+                if !container.blocks.is_empty() {
+                    doc = doc.append(arena.hardline());
+                    doc = doc.append(container.blocks.to_doc(config, arena));
+                    doc = doc.append(arena.hardline());
+                }
+                doc.append(arena.text(":::"))
+            }
         }
     }
 }

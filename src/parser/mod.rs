@@ -92,6 +92,10 @@ pub struct MarkdownParserState {
     /// When true, fenced code blocks should not strip additional indentation from their content.
     /// This field is for internal use only.
     pub(crate) is_nested_block_context: bool,
+
+    /// The stack of containers that are currently being parsed.
+    /// This is used to prevent self-nesting.
+    pub(crate) containers: Vec<String>,
 }
 
 impl MarkdownParserState {
@@ -126,6 +130,7 @@ impl MarkdownParserState {
         Self {
             config: Rc::new(config),
             is_nested_block_context: false,
+            containers: Vec::new(),
         }
     }
 
@@ -138,6 +143,7 @@ impl MarkdownParserState {
         Self {
             config: self.config.clone(),
             is_nested_block_context: true,
+            containers: self.containers.clone(),
         }
     }
 }

@@ -119,6 +119,14 @@ impl<'a> ToDoc<'a> for Block {
                 .text("#mi(block: true, \"")
                 .append(state.arena.text(escape_typst(&latex.clone())))
                 .append(state.arena.text("\")")),
+            Block::Container(container) => {
+                let mut doc = state.arena.text(format!("#block(breakable: true, inset: (y: 0.5em), stroke: luma(190) + 1pt, width: 100%)[*{}*", container.kind));
+                if !container.blocks.is_empty() {
+                    doc = doc.append(state.arena.hardline());
+                    doc = doc.append(container.blocks.to_doc(state));
+                }
+                doc.append(state.arena.text("]"))
+            }
         }
     }
 }

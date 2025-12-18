@@ -130,6 +130,27 @@ where
         #[cfg_attr(feature = "ast-serde", serde(default))]
         user_data: T,
     },
+
+    /// A container block.
+    Container(Container<T>),
+}
+
+/// A container block with optional user data.
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "ast-serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Container<T = ()>
+where
+    T: Default,
+{
+    /// The kind of the container.
+    pub kind: String,
+
+    /// The blocks inside the container.
+    pub blocks: Vec<Block<T>>,
+
+    /// User-defined data associated with this container.
+    #[cfg_attr(feature = "ast-serde", serde(default))]
+    pub user_data: T,
 }
 
 /// Heading with level 1–6 and inline content.

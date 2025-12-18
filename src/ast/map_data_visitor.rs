@@ -64,6 +64,25 @@ pub trait MapDataVisitor<T: Default, U: Default> {
                 content,
                 user_data: self.map_data(user_data),
             },
+            generic::Block::Container(container) => {
+                generic::Block::Container(self.visit_container(container))
+            }
+        }
+    }
+
+    /// Transform a container
+    fn visit_container(
+        &mut self,
+        container: generic::Container<T>,
+    ) -> generic::Container<U> {
+        generic::Container {
+            kind: container.kind,
+            blocks: container
+                .blocks
+                .into_iter()
+                .map(|b| self.visit_block(b))
+                .collect(),
+            user_data: self.map_data(container.user_data),
         }
     }
 

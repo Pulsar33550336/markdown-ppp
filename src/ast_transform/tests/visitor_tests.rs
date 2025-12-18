@@ -237,6 +237,7 @@ impl Visitor for NodeCounter {
             Block::GitHubAlert(_) => self.github_alert_count += 1,
             Block::Definition(_) => self.definition_count += 1,
             Block::Empty => {}
+            Block::Container(_) => {} // Add this line
             Block::LatexBlock(_) => {}
         }
         self.walk_block(block);
