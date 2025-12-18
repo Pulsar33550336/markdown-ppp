@@ -118,6 +118,7 @@ impl<T: Default> WithData<T> for Container {
     fn with_data(self, data: T) -> Self::WithDataType {
         generic::Container {
             kind: self.kind,
+            params: self.params,
             blocks: self
                 .blocks
                 .into_iter()
@@ -602,6 +603,7 @@ impl<T: Default> StripData<T> for generic::Container<T> {
     fn strip_data(self) -> Self::StrippedType {
         Container {
             kind: self.kind,
+            params: self.params,
             blocks: self.blocks.into_iter().map(|b| b.strip_data()).collect(),
         }
     }

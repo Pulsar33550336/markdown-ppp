@@ -101,6 +101,9 @@ pub struct Container {
     /// The kind of the container.
     pub kind: String,
 
+    /// The parameters of the container.
+    pub params: Vec<(String, String)>,
+
     /// The blocks inside the container.
     pub blocks: Vec<Block>,
 }

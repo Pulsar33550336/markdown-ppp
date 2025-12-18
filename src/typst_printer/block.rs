@@ -120,12 +120,25 @@ impl<'a> ToDoc<'a> for Block {
                 .append(state.arena.text(escape_typst(&latex.clone())))
                 .append(state.arena.text("\")")),
             Block::Container(container) => {
-                let mut doc = state.arena.text(format!("#block(breakable: true, inset: (y: 0.5em), stroke: luma(190) + 1pt, width: 100%)[*{}*", container.kind));
-                if !container.blocks.is_empty() {
-                    doc = doc.append(state.arena.hardline());
-                    doc = doc.append(container.blocks.to_doc(state));
+                if container.kind == "figure" {
+                    let mut args = Vec::new();
+                    if let Some((_, caption)) = container.params.iter().find(|(k, _)| k == "caption") {
+                        args.push(state.arena.text(format!("caption: [\"{}\"]", escape_typst(caption))));
+                    }
+                    let body = container.blocks.to_doc(state);
+                    let mut doc = state.arena.text("#figure(").append(body);
+                    if !args.is_empty() {
+                        doc = doc.append(state.arena.text(", ")).append(state.arena.concat(args));
+                    }
+                    doc.append(state.arena.text(")"))
+                } else {
+                    let mut doc = state.arena.text(format!("#block(breakable: true, inset: (y: 0.5em), stroke: luma(190) + 1pt, width: 100%)[*{}*", container.kind));
+                    if !container.blocks.is_empty() {
+                        doc = doc.append(state.arena.hardline());
+                        doc = doc.append(container.blocks.to_doc(state));
+                    }
+                    doc.append(state.arena.text("]"))
                 }
-                doc.append(state.arena.text("]"))
             }
         }
     }
@@ -136,24 +149,22 @@ impl<'a> ToDoc<'a> for List {
         if self.items.is_empty() {
             return state.arena.nil();
         }
-        // 根据列表类型选择前缀
+        let mut doc = state.arena.nil();
+        if state.render_with_hash {
+            doc = doc.append(state.arena.text("#"));
+        }
         let prefix = match self.kind {
-            ListKind::Ordered(_) => "#enum(\n  [",
-            ListKind::Bullet(_) => "#list(\n  [",
+            ListKind::Ordered(_) => "enum(\n  [",
+            ListKind::Bullet(_) => "list(\n  [",
         };
+        doc = doc.append(prefix);
 
-        // 构建列表内容
         let list_content = state.arena.intersperse(
             self.items.iter().map(|item| item.to_doc(self, state)),
             state.arena.text("],\n  ["),
         );
 
-        // 组合前缀、内容和后缀
-        state
-            .arena
-            .text(prefix)
-            .append(list_content)
-            .append(state.arena.text("],\n)"))
+        doc.append(list_content).append(state.arena.text("],\n)"))
     }
 }
 

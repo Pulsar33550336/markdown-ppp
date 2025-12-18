@@ -254,3 +254,20 @@ fn test_table_with_merged_cells() {
     .join("\n");
     assert_eq!(result.trim(), expected);
 }
+
+#[test]
+fn test_figure_container_with_caption() {
+    let doc = Document {
+        blocks: vec![Block::Container(Container {
+            kind: "figure".to_string(),
+            params: vec![("caption".to_string(), "This is a caption".to_string())],
+            blocks: vec![Block::Paragraph(vec![Inline::Text("Content".to_string())])],
+        })],
+    };
+
+    let result = render_typst(&doc, Config::default());
+    assert_eq!(
+        result.trim(),
+        r##"#figure(#par[#"Content"], caption: ["This is a caption"])"##
+    );
+}

@@ -77,6 +77,7 @@ pub trait MapDataVisitor<T: Default, U: Default> {
     ) -> generic::Container<U> {
         generic::Container {
             kind: container.kind,
+            params: container.params,
             blocks: container
                 .blocks
                 .into_iter()

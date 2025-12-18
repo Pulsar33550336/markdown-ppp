@@ -13,6 +13,53 @@ some content
         doc.blocks,
         vec![Block::Container(Container {
             kind: "a".to_string(),
+            params: vec![],
+            blocks: vec![Block::Paragraph(vec![Inline::Text(
+                "some content".to_string()
+            )])]
+        })]
+    );
+}
+
+#[test]
+fn test_container_with_params() {
+    let a = r#":::a{x=b y=c}
+some content
+:::
+"#;
+    let state = MarkdownParserState::new();
+    let doc = parse_markdown(state, a).unwrap();
+    assert_eq!(
+        doc.blocks,
+        vec![Block::Container(Container {
+            kind: "a".to_string(),
+            params: vec![
+                ("x".to_string(), "b".to_string()),
+                ("y".to_string(), "c".to_string())
+            ],
+            blocks: vec![Block::Paragraph(vec![Inline::Text(
+                "some content".to_string()
+            )])]
+        })]
+    );
+}
+
+#[test]
+fn test_container_with_quoted_params() {
+    let a = r#":::a{x="b c" y=d}
+some content
+:::
+"#;
+    let state = MarkdownParserState::new();
+    let doc = parse_markdown(state, a).unwrap();
+    assert_eq!(
+        doc.blocks,
+        vec![Block::Container(Container {
+            kind: "a".to_string(),
+            params: vec![
+                ("x".to_string(), "b c".to_string()),
+                ("y".to_string(), "d".to_string())
+            ],
             blocks: vec![Block::Paragraph(vec![Inline::Text(
                 "some content".to_string()
             )])]
@@ -33,6 +80,7 @@ some content
         doc.blocks,
         vec![Block::Container(Container {
             kind: "a".to_string(),
+            params: vec![],
             blocks: vec![
                 Block::Heading(Heading {
                     kind: HeadingKind::Atx(1),
@@ -43,61 +91,6 @@ some content
         })]
     );
 }
-
-// 这两个测试不正确，先删了
-// #[test]
-// fn test_container_not_nest_same_kind() {
-//     let a = r#":::a
-// :::a
-// # H1
-// some content
-// :::
-// :::
-// "#;
-//     let state = MarkdownParserState::new();
-//     let doc = parse_markdown(state, a).unwrap();
-//     assert_eq!(
-//         doc.blocks,
-//         vec![Block::Container(Container {
-//             kind: "a".to_string(),
-//             blocks: vec![
-//                 Block::Paragraph(vec![Inline::Text(":::a".to_string())]),
-//                 Block::Heading(Heading {
-//                     kind: HeadingKind::Atx(1),
-//                     content: vec![Inline::Text("H1".to_string())],
-//                 }),
-//                 Block::Paragraph(vec![Inline::Text("some content".to_string())]),
-//                 Block::Paragraph(vec![Inline::Text(":::".to_string())]),
-//             ]
-//         })]
-//     );
-// }
-
-// #[test]
-// fn test_container_no_nesting() {
-//     let a = r#":::a
-// :::b
-// # H1
-// some content
-// :::
-// :::
-// "#;
-//     let state = MarkdownParserState::new();
-//     let doc = parse_markdown(state, a).unwrap();
-//     assert_eq!(
-//         doc.blocks,
-//         vec![
-//             Block::Paragraph(vec![Inline::Text(":::a".to_string())]),
-//             Block::Paragraph(vec![Inline::Text(":::b".to_string())]),
-//             Block::Heading(Heading {
-//                 kind: HeadingKind::Atx(1),
-//                 content: vec![Inline::Text("H1".to_string())],
-//             }),
-//             Block::Paragraph(vec![Inline::Text("some content".to_string())]),
-//             Block::Paragraph(vec![Inline::Text(":::".to_string())]),
-//         ]
-//     );
-// }
 
 #[test]
 fn test_empty_container() {
@@ -110,6 +103,7 @@ fn test_empty_container() {
         doc.blocks,
         vec![Block::Container(Container {
             kind: "a".to_string(),
+            params: vec![],
             blocks: vec![]
         })]
     );
