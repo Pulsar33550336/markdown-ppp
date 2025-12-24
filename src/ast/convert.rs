@@ -108,6 +108,7 @@ impl<T: Default> WithData<T> for Block {
             Block::Container(container) => {
                 generic::Block::Container(container.with_data(data))
             }
+            Block::MacroBlock(content) => todo!(),
         }
     }
 }
@@ -186,6 +187,7 @@ impl<T: Default> WithData<T> for Inline {
                 user_data: data,
             },
             Inline::Empty => generic::Inline::Empty { user_data: data },
+            Inline::Macro(content) => todo!(),
         }
     }
 }

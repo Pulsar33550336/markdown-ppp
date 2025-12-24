@@ -17,3 +17,6 @@ mod expandable_tests;
 
 #[cfg(test)]
 mod generic_expandable_tests;
+
+#[cfg(test)]
+mod macro_expansion;

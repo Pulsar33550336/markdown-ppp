@@ -130,6 +130,7 @@ impl<'a> ToDoc<'a> for Block {
                 }
                 doc.append(arena.text(":::"))
             }
+            Block::MacroBlock(content) => arena.text(format!("{{{{ {} }}}}", content)),
         }
     }
 }

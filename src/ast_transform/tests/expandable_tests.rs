@@ -7,58 +7,41 @@ use crate::ast_transform::{ExpandWith, Transformer};
 struct ParagraphSplitter;
 
 impl Transformer for ParagraphSplitter {
-    fn walk_expand_block(&mut self, block: Block) -> Vec<Block> {
-        match block {
-            Block::Paragraph(inlines) => {
-                // Look for "SPLIT" text in the paragraph
-                let mut split_indices = Vec::new();
-                for (i, inline) in inlines.iter().enumerate() {
-                    if let Inline::Text(text) = inline {
-                        if text.contains("SPLIT") {
-                            split_indices.push(i);
-                        }
+    fn expand_block(&mut self, block: Block) -> Vec<Block> {
+        if let Block::Paragraph(ref inlines) = block {
+            let mut split_point = None;
+            for (i, inline) in inlines.iter().enumerate() {
+                if let Inline::Text(text) = inline {
+                    if text.contains("SPLIT") {
+                        split_point = Some(i);
+                        break;
                     }
-                }
-
-                if split_indices.is_empty() {
-                    // No split needed, use default behavior - apply to children
-                    let expanded_inlines: Vec<Inline> = inlines
-                        .into_iter()
-                        .flat_map(|inline| self.walk_expand_inline(inline))
-                        .collect();
-                    vec![Block::Paragraph(expanded_inlines)]
-                } else {
-                    // Split at the first SPLIT marker
-                    let split_at = split_indices[0];
-                    let (first_half, second_half) = inlines.split_at(split_at);
-
-                    // Skip the SPLIT marker in the second half
-                    let second_half = if second_half.len() > 1 {
-                        second_half[1..].to_vec()
-                    } else {
-                        vec![]
-                    };
-
-                    let mut result = Vec::new();
-
-                    // Add first paragraph if not empty
-                    if !first_half.is_empty() {
-                        result.push(Block::Paragraph(first_half.to_vec()));
-                    }
-
-                    // Add second paragraph if not empty
-                    if !second_half.is_empty() {
-                        result.push(Block::Paragraph(second_half));
-                    }
-
-                    result
                 }
             }
-            other => {
-                // For other types, use default behavior
-                vec![self.transform_block(other)]
+
+            if let Some(split_at) = split_point {
+                let (first_half, second_half) = inlines.split_at(split_at);
+
+                let second_half = if second_half.len() > 1 {
+                    second_half[1..].to_vec()
+                } else {
+                    vec![]
+                };
+
+                let mut result = Vec::new();
+
+                if !first_half.is_empty() {
+                    result.push(Block::Paragraph(first_half.to_vec()));
+                }
+
+                if !second_half.is_empty() {
+                    result.push(Block::Paragraph(second_half));
+                }
+
+                return result;
             }
         }
+        self.walk_expand_block(block)
     }
 }
 
@@ -73,7 +56,7 @@ fn test_paragraph_splitter() {
     };
 
     let mut transformer = ParagraphSplitter;
-    let result = transformer.walk_expand_document(doc);
+    let result = doc.expand_with(&mut transformer);
 
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].blocks.len(), 2);
@@ -99,11 +82,9 @@ fn test_paragraph_splitter() {
 struct TextExpander;
 
 impl Transformer for TextExpander {
-    // Override the walk method to implement the actual expansion logic
-    fn walk_expand_inline(&mut self, inline: Inline) -> Vec<Inline> {
-        match inline {
-            Inline::Text(text) if text.contains("EXPAND") => {
-                // Split on "EXPAND" and create multiple text nodes
+    fn expand_inline(&mut self, inline: Inline) -> Vec<Inline> {
+        if let Inline::Text(text) = &inline {
+            if text.contains("EXPAND") {
                 let parts: Vec<&str> = text.split("EXPAND").collect();
                 let mut result = Vec::new();
 
@@ -111,19 +92,14 @@ impl Transformer for TextExpander {
                     if !part.is_empty() {
                         result.push(Inline::Text(part.to_string()));
                     }
-                    // Add emphasis between parts (except after the last part)
                     if i < parts.len() - 1 {
                         result.push(Inline::Emphasis(vec![Inline::Text("EXPANDED".to_string())]));
                     }
                 }
-
-                result
-            }
-            other => {
-                // For other types, use default behavior
-                vec![self.transform_inline(other)]
+                return result;
             }
         }
+        self.walk_expand_inline(inline)
     }
 }
 
@@ -136,7 +112,7 @@ fn test_text_expander() {
     };
 
     let mut transformer = TextExpander;
-    let result = transformer.walk_expand_document(doc);
+    let result = doc.expand_with(&mut transformer);
 
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].blocks.len(), 1);
@@ -164,36 +140,31 @@ fn test_text_expander() {
 struct HeadingExpander;
 
 impl Transformer for HeadingExpander {
-    fn walk_expand_block(&mut self, block: Block) -> Vec<Block> {
-        match block {
-            Block::Heading(heading) => {
-                // Create the original heading with expanded children
-                let mut transformed_heading = heading.clone();
-                transformed_heading.content = transformed_heading
-                    .content
-                    .into_iter()
-                    .flat_map(|inline| self.walk_expand_inline(inline))
-                    .collect();
+    fn expand_block(&mut self, block: Block) -> Vec<Block> {
+        if let Block::Heading(heading) = block {
+            let mut transformed_heading = heading.clone();
+            transformed_heading.content = transformed_heading
+                .content
+                .into_iter()
+                .flat_map(|inline| self.expand_inline(inline))
+                .collect();
 
-                // Create an additional paragraph with metadata
-                let meta_paragraph =
-                    Block::Paragraph(vec![Inline::Emphasis(vec![Inline::Text(format!(
-                        "This is a {} heading",
-                        match &heading.kind {
-                            HeadingKind::Atx(level) => format!("level {level}"),
-                            HeadingKind::Setext(setext) => match setext {
-                                SetextHeading::Level1 => "level 1".to_string(),
-                                SetextHeading::Level2 => "level 2".to_string(),
-                            },
-                        }
-                    ))])]);
+            // Create an additional paragraph with metadata
+            let meta_paragraph =
+                Block::Paragraph(vec![Inline::Emphasis(vec![Inline::Text(format!(
+                    "This is a {} heading",
+                    match &heading.kind {
+                        HeadingKind::Atx(level) => format!("level {level}"),
+                        HeadingKind::Setext(setext) => match setext {
+                            SetextHeading::Level1 => "level 1".to_string(),
+                            SetextHeading::Level2 => "level 2".to_string(),
+                        },
+                    }
+                ))])]);
 
-                vec![Block::Heading(transformed_heading), meta_paragraph]
-            }
-            other => {
-                // For other types, use default behavior
-                vec![self.transform_block(other)]
-            }
+            vec![Block::Heading(transformed_heading), meta_paragraph]
+        } else {
+            self.walk_expand_block(block)
         }
     }
 }
@@ -208,7 +179,7 @@ fn test_heading_expander() {
     };
 
     let mut transformer = HeadingExpander;
-    let result = transformer.walk_expand_document(doc);
+    let result = doc.expand_with(&mut transformer);
 
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].blocks.len(), 2);
@@ -267,12 +238,7 @@ fn test_expand_with_trait() {
 /// Test transformer that doesn't expand (returns single element)
 struct NoOpExpander;
 
-impl Transformer for NoOpExpander {
-    fn expand_block(&mut self, block: Block) -> Vec<Block> {
-        // Use default implementation (no expansion)
-        vec![self.transform_block(block)]
-    }
-}
+impl Transformer for NoOpExpander {}
 
 #[test]
 fn test_no_expansion() {
@@ -283,7 +249,7 @@ fn test_no_expansion() {
     };
 
     let mut transformer = NoOpExpander;
-    let result = transformer.walk_expand_document(doc);
+    let result = doc.expand_with(&mut transformer);
 
     // Should return exactly one document with one block
     assert_eq!(result.len(), 1);
@@ -300,84 +266,67 @@ fn test_no_expansion() {
 struct ComplexExpander;
 
 impl Transformer for ComplexExpander {
-    fn walk_expand_block(&mut self, block: Block) -> Vec<Block> {
-        match block {
-            // Split paragraphs on "SPLIT"
-            Block::Paragraph(inlines) => {
-                for (i, inline) in inlines.iter().enumerate() {
+    fn expand_block(&mut self, block: Block) -> Vec<Block> {
+        if let Block::Paragraph(inlines) = &block {
+            if inlines
+                .iter()
+                .any(|inline| matches!(inline, Inline::Text(t) if t.contains("SPLIT")))
+            {
+                // This is a simplified logic for splitting, a real implementation
+                // would be more robust.
+                let mut result = Vec::new();
+                let mut current_paragraph = Vec::new();
+
+                for inline in inlines {
                     if let Inline::Text(text) = inline {
                         if text.contains("SPLIT") {
-                            let (first_half, second_half) = inlines.split_at(i);
-                            let second_half = if second_half.len() > 1 {
-                                second_half[1..].to_vec()
-                            } else {
-                                vec![]
-                            };
-
-                            let mut result = Vec::new();
-                            if !first_half.is_empty() {
-                                // Apply inline expansion to first half
-                                let expanded_first: Vec<Inline> = first_half
-                                    .iter()
-                                    .flat_map(|inline| self.walk_expand_inline(inline.clone()))
-                                    .collect();
-                                result.push(Block::Paragraph(expanded_first));
+                            if !current_paragraph.is_empty() {
+                                result.push(Block::Paragraph(current_paragraph));
                             }
-                            if !second_half.is_empty() {
-                                // Apply inline expansion to second half
-                                let expanded_second: Vec<Inline> = second_half
-                                    .iter()
-                                    .flat_map(|inline| self.walk_expand_inline(inline.clone()))
-                                    .collect();
-                                result.push(Block::Paragraph(expanded_second));
-                            }
-                            return result;
+                            current_paragraph = Vec::new();
+                            continue;
                         }
                     }
+                    current_paragraph.push(inline.clone());
                 }
-                // Apply expand_inline to children
-                let expanded_inlines: Vec<Inline> = inlines
+
+                if !current_paragraph.is_empty() {
+                    result.push(Block::Paragraph(current_paragraph));
+                }
+                return result
                     .into_iter()
-                    .flat_map(|inline| self.walk_expand_inline(inline))
+                    .flat_map(|b| self.expand_block(b))
                     .collect();
-                vec![Block::Paragraph(expanded_inlines)]
-            }
-            // Expand headings
-            Block::Heading(heading) => {
-                let mut result = Vec::new();
-
-                // Transform heading with expanded children
-                let mut transformed_heading = heading.clone();
-                transformed_heading.content = transformed_heading
-                    .content
-                    .into_iter()
-                    .flat_map(|inline| self.walk_expand_inline(inline))
-                    .collect();
-
-                result.push(Block::Heading(transformed_heading));
-
-                let meta_paragraph =
-                    Block::Paragraph(vec![Inline::Text("(Generated metadata)".to_string())]);
-                result.push(meta_paragraph);
-                result
-            }
-            other => {
-                // For other types, use default behavior
-                vec![self.transform_block(other)]
             }
         }
+
+        if let Block::Heading(heading) = block {
+            let mut transformed_heading = heading;
+            transformed_heading.content = transformed_heading
+                .content
+                .into_iter()
+                .flat_map(|inline| self.expand_inline(inline))
+                .collect();
+
+            let meta_paragraph =
+                Block::Paragraph(vec![Inline::Text("(Generated metadata)".to_string())]);
+
+            return vec![Block::Heading(transformed_heading), meta_paragraph];
+        }
+
+        self.walk_expand_block(block)
     }
 
-    fn walk_expand_inline(&mut self, inline: Inline) -> Vec<Inline> {
-        match inline {
-            Inline::Text(text) if text.contains("EXPAND") => {
-                vec![
+    fn expand_inline(&mut self, inline: Inline) -> Vec<Inline> {
+        if let Inline::Text(text) = &inline {
+            if text.contains("EXPAND") {
+                return vec![
                     Inline::Text(text.replace("EXPAND", "")),
                     Inline::Strong(vec![Inline::Text("EXPANDED".to_string())]),
-                ]
+                ];
             }
-            other => self.walk_expand_inline(other),
         }
+        self.walk_expand_inline(inline)
     }
 }
 
@@ -398,7 +347,7 @@ fn test_complex_expansion() {
     };
 
     let mut transformer = ComplexExpander;
-    let result = transformer.walk_expand_document(doc);
+    let result = doc.expand_with(&mut transformer);
 
     assert_eq!(result.len(), 1);
     // Should have: heading + meta paragraph + first paragraph + second paragraph = 4 blocks

@@ -219,6 +219,7 @@ impl Visitor for NodeCounter {
             Inline::LineBreak => {}
             Inline::Empty => {}
             Inline::Latex(_) => {}
+            Inline::Macro(_) => {}
         }
         self.walk_inline(inline);
     }
@@ -239,6 +240,7 @@ impl Visitor for NodeCounter {
             Block::Empty => {}
             Block::Container(_) => {} // Add this line
             Block::LatexBlock(_) => {}
+            Block::MacroBlock(_) => {}
         }
         self.walk_block(block);
     }

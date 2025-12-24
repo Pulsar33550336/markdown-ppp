@@ -156,6 +156,7 @@ impl<'a> ToDoc<'a> for Block {
                     state.arena.text("").append(container.blocks.to_doc(state))
                 }
             }
+            Block::MacroBlock(_) => state.arena.nil(),
         }
     }
 }

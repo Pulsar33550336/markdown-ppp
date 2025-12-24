@@ -8,6 +8,7 @@ mod html_block;
 mod latex;
 mod link_definition;
 mod list;
+mod macro_block;
 pub(crate) mod paragraph;
 mod table;
 mod thematic_break;
@@ -48,18 +49,19 @@ pub(crate) fn block<'a>(
                     state.config.block_container_behavior.clone(),
                     crate::parser::blocks::container::container(state.clone()),
                 ),
-                // NOTE: It's important that the latex parser comes before the paragraph parser
-                map(crate::parser::blocks::latex::latex_block, |b| vec![b]),
-                conditional_block(
-                    state.config.block_heading_v2_behavior.clone(),
-                    crate::parser::blocks::heading::heading_v2_or_paragraph(state.clone()),
-                ),
+                map(crate::parser::blocks::macro_block::macro_block, |b| vec![b]),
                 conditional_block(
                     state.config.block_thematic_break_behavior.clone(),
                     map(
                         crate::parser::blocks::thematic_break::thematic_break(state.clone()),
                         |()| Block::ThematicBreak,
                     ),
+                ),
+                // NOTE: It's important that the latex parser comes before the paragraph parser
+                map(crate::parser::blocks::latex::latex_block, |b| vec![b]),
+                conditional_block(
+                    state.config.block_heading_v2_behavior.clone(),
+                    crate::parser::blocks::heading::heading_v2_or_paragraph(state.clone()),
                 ),
                 // GitHub alerts should be checked before regular blockquotes
                 conditional_block_vec(

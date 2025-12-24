@@ -9,6 +9,7 @@ mod html_block;
 mod latex;
 mod link_definition;
 mod list;
+mod macro_block;
 mod paragraph;
 mod table;
 mod thematic_break;

@@ -303,8 +303,13 @@ pub trait Transformer {
     /// Transform a document with possibility to expand into multiple documents
     ///
     /// Default implementation delegates to the regular transform_document method
-    fn expand_document(&mut self, doc: Document) -> Vec<Document> {
-        vec![self.transform_document(doc)]
+    fn expand_document(&mut self, mut doc: Document) -> Vec<Document> {
+        doc.blocks = doc
+            .blocks
+            .into_iter()
+            .flat_map(|block| self.expand_block(block))
+            .collect();
+        vec![doc]
     }
 
     /// Transform a block with possibility to expand into multiple blocks
@@ -316,7 +321,7 @@ pub trait Transformer {
     ///
     /// Default implementation delegates to the regular transform_block method
     fn expand_block(&mut self, block: Block) -> Vec<Block> {
-        vec![self.transform_block(block)]
+        self.walk_expand_block(block)
     }
 
     /// Transform an inline with possibility to expand into multiple inlines
@@ -328,7 +333,7 @@ pub trait Transformer {
     ///
     /// Default implementation delegates to the regular transform_inline method
     fn expand_inline(&mut self, inline: Inline) -> Vec<Inline> {
-        vec![self.transform_inline(inline)]
+        self.walk_expand_inline(inline)
     }
 
     /// Transform a table cell with possibility to expand into multiple cells
@@ -396,7 +401,7 @@ pub trait Transformer {
         doc.blocks = doc
             .blocks
             .into_iter()
-            .flat_map(|block| self.walk_expand_block(block))
+            .flat_map(|block| self.expand_block(block))
             .collect();
         vec![doc]
     }
@@ -411,7 +416,7 @@ pub trait Transformer {
             Block::Paragraph(inlines) => {
                 let expanded_inlines: Vec<Inline> = inlines
                     .into_iter()
-                    .flat_map(|inline| self.walk_expand_inline(inline))
+                    .flat_map(|inline| self.expand_inline(inline))
                     .collect();
                 vec![Block::Paragraph(expanded_inlines)]
             }
@@ -419,14 +424,14 @@ pub trait Transformer {
                 heading.content = heading
                     .content
                     .into_iter()
-                    .flat_map(|inline| self.walk_expand_inline(inline))
+                    .flat_map(|inline| self.expand_inline(inline))
                     .collect();
                 vec![Block::Heading(heading)]
             }
             Block::BlockQuote(blocks) => {
                 let expanded_blocks: Vec<Block> = blocks
                     .into_iter()
-                    .flat_map(|block| self.walk_expand_block(block))
+                    .flat_map(|block| self.expand_block(block))
                     .collect();
                 vec![Block::BlockQuote(expanded_blocks)]
             }
@@ -434,7 +439,7 @@ pub trait Transformer {
                 list.items = list
                     .items
                     .into_iter()
-                    .flat_map(|item| self.walk_expand_list_item(item))
+                    .flat_map(|item| self.expand_list_item(item))
                     .collect();
                 vec![Block::List(list)]
             }
@@ -442,7 +447,7 @@ pub trait Transformer {
                 table.rows = table
                     .rows
                     .into_iter()
-                    .flat_map(|row| self.walk_expand_table_row(row))
+                    .flat_map(|row| self.expand_table_row(row))
                     .collect();
                 vec![Block::Table(table)]
             }
@@ -450,7 +455,7 @@ pub trait Transformer {
                 footnote.blocks = footnote
                     .blocks
                     .into_iter()
-                    .flat_map(|block| self.walk_expand_block(block))
+                    .flat_map(|block| self.expand_block(block))
                     .collect();
                 vec![Block::FootnoteDefinition(footnote)]
             }
@@ -458,7 +463,7 @@ pub trait Transformer {
                 alert.blocks = alert
                     .blocks
                     .into_iter()
-                    .flat_map(|block| self.walk_expand_block(block))
+                    .flat_map(|block| self.expand_block(block))
                     .collect();
                 vec![Block::GitHubAlert(alert)]
             }
@@ -466,12 +471,12 @@ pub trait Transformer {
                 def.label = def
                     .label
                     .into_iter()
-                    .flat_map(|inline| self.walk_expand_inline(inline))
+                    .flat_map(|inline| self.expand_inline(inline))
                     .collect();
                 vec![Block::Definition(def)]
             }
             // Terminal nodes - no transformation needed
-            other => vec![self.transform_block(other)],
+            other => vec![other],
         }
     }
 
@@ -480,7 +485,36 @@ pub trait Transformer {
     /// Override this method to implement custom expandable inline transformations.
     /// By default, delegates to transform_inline (1-to-1 transformation).
     fn walk_expand_inline(&mut self, inline: Inline) -> Vec<Inline> {
-        vec![self.transform_inline(inline)]
+        match inline {
+            Inline::Emphasis(inlines) => {
+                let inlines = inlines.into_iter().flat_map(|i| self.expand_inline(i)).collect();
+                vec![Inline::Emphasis(inlines)]
+            }
+            Inline::Strong(inlines) => {
+                let inlines = inlines.into_iter().flat_map(|i| self.expand_inline(i)).collect();
+                vec![Inline::Strong(inlines)]
+            }
+            Inline::Strikethrough(inlines) => {
+                let inlines = inlines.into_iter().flat_map(|i| self.expand_inline(i)).collect();
+                vec![Inline::Strikethrough(inlines)]
+            }
+            Inline::Link(mut link) => {
+                link.children = link
+                    .children
+                    .into_iter()
+                    .flat_map(|i| self.expand_inline(i))
+                    .collect();
+                vec![Inline::Link(link)]
+            }
+            Inline::LinkReference(mut link_ref) => {
+                link_ref.label =
+                    link_ref.label.into_iter().flat_map(|i| self.expand_inline(i)).collect();
+                link_ref.text = link_ref.text.into_iter().flat_map(|i| self.expand_inline(i)).collect();
+                vec![Inline::LinkReference(link_ref)]
+            }
+            // Terminal nodes - no transformation needed
+            other => vec![other],
+        }
     }
 
     /// Walk table cell with expandable transformations
@@ -631,19 +665,19 @@ pub trait ExpandWith {
 
 impl ExpandWith for Document {
     fn expand_with<T: Transformer>(self, transformer: &mut T) -> Vec<Self> {
-        transformer.walk_expand_document(self)
+        transformer.expand_document(self)
     }
 }
 
 impl ExpandWith for Block {
     fn expand_with<T: Transformer>(self, transformer: &mut T) -> Vec<Self> {
-        transformer.walk_expand_block(self)
+        transformer.expand_block(self)
     }
 }
 
 impl ExpandWith for Inline {
     fn expand_with<T: Transformer>(self, transformer: &mut T) -> Vec<Self> {
-        transformer.walk_expand_inline(self)
+        transformer.expand_inline(self)
     }
 }
 

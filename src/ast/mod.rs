@@ -92,6 +92,9 @@ pub enum Block {
 
     /// A container block.
     Container(Container),
+
+    /// A macro block.
+    MacroBlock(String),
 }
 
 /// A container block.
@@ -368,6 +371,9 @@ pub enum Inline {
 
     /// Empty element. This is used to represent skipped elements in the AST.
     Empty,
+
+    /// A macro.
+    Macro(String),
 }
 
 /// Attributes for an image.

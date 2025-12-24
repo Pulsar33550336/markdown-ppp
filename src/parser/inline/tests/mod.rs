@@ -11,5 +11,6 @@ mod image_attr;
 mod image_attr_unquoted;
 mod inline_link;
 mod latex;
+mod r#macro;
 mod reference_link;
 mod strikethrough;

@@ -39,6 +39,7 @@
 
 pub mod convenience;
 pub mod generic_transformer;
+pub mod macro_expansion;
 pub mod pipeline;
 pub mod query;
 pub mod transformer;
