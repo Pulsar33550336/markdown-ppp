@@ -23,11 +23,12 @@ rendering Markdown.
    structure.
  - **Pretty-printing and processing** — Build, modify, and reformat Markdown
    easily.
- - **Render to HTML** — Convert Markdown AST to HTML.
- - **Render to LaTeX** — Convert Markdown AST to LaTeX with configurable styles.
+ - **Render to Typst** — Convert Markdown AST to Typst.
  - **AST Transformation** — Comprehensive toolkit for modifying, querying, and
    transforming parsed documents with support for 1-to-many expandable
    transformations and generic AST with user data.
+ - **Macros and Containers** — Support for `{{...}}` style macros and `:::{...}`
+   container blocks.
  - **GitHub Alerts** — Native support for GitHub-style markdown alerts ([!NOTE],
    [!TIP], [!WARNING], etc.). Custom alert types are also supported.
  - **Modular design** — You can disable parsing entirely and use only the AST
@@ -48,7 +49,7 @@ default features manually:
 
 ```toml
 [dependencies]
-markdown-ppp = { version = "2.6.0", default-features = false }
+markdown-ppp = { version = "2.8.1", default-features = false }
 ```
 
 ---
@@ -219,6 +220,29 @@ into the Markdown parser while reusing the base logic and AST structure provided
 by `markdown-ppp`., filter, or completely redefine how each Markdown element is
 treated during parsing.
 
+### Container Blocks
+
+The library supports `:::{...}` style container blocks, which can be used to
+group content and add metadata.
+
+```rust
+use markdown_ppp::parser::parse_markdown;
+use markdown_ppp::parser::MarkdownParserState;
+use markdown_ppp::ast::{Block, Container, Inline};
+
+let input = r#":::figure{caption="This is a caption"}
+This is the content of the figure.
+:::"#;
+
+let doc = parse_markdown(MarkdownParserState::default(), input).unwrap();
+
+if let Some(Block::Container(Container { kind, params, blocks })) = doc.blocks.get(0) {
+    assert_eq!(kind, "figure");
+    assert_eq!(params.get("caption"), Some(&"This is a caption".to_string()));
+    assert!(matches!(blocks.get(0), Some(Block::Paragraph(_))));
+}
+```
+
 ---
 
 ## 📄 AST structure
@@ -247,7 +271,7 @@ Enable the feature in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-markdown-ppp = { version = "2.6.0", features = ["ast-specialized"] }
+markdown-ppp = { version = "2.8.1", features = ["ast-specialized"] }
 ```
 
 ### Available Types
@@ -318,7 +342,7 @@ Enable the feature in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-markdown-ppp = { version = "2.6.0", features = ["ast-transform"] }
+markdown-ppp = { version = "2.8.1", features = ["ast-transform"] }
 ```
 
 Then use the transformation API:
@@ -421,7 +445,39 @@ impl Transformer for CodeHighlighter {
 let doc = doc.transform_with(&mut CodeHighlighter);
 ```
 
-#### 5. **Expandable Transformations** - 1-to-many transformations
+#### 5. **Macro Expansion** - Expand custom macros
+
+The library supports `{{...}}` style macros, which can be expanded using a
+`MacroTransformer`.
+
+```rust
+use markdown_ppp::ast_transform::{macro_expansion::MacroTransformer, ExpandWith};
+
+let mut transformer = MacroTransformer {
+    block_expander: &|content| {
+        if content == "block_macro" {
+            vec![Block::Paragraph(vec![Inline::Text(
+                "Block macro replaced.".to_string(),
+            )])]
+        } else {
+            vec![Block::Paragraph(vec![Inline::Text(
+                "Unknown block macro.".to_string(),
+            )])]
+        }
+    },
+    inline_expander: &|content| {
+        if content == "inline_macro" {
+            vec![Inline::Text("inline macro replaced".to_string())]
+        } else {
+            vec![Inline::Text("unknown inline macro".to_string())]
+        }
+    },
+};
+
+let doc = doc.expand_with(&mut transformer);
+```
+
+#### 6. **Expandable Transformations** - 1-to-many transformations
 
 ```rust
 use markdown_ppp::ast_transform::{Transformer, ExpandWith};
@@ -457,7 +513,7 @@ let mut transformer = ParagraphSplitter;
 let expanded_docs = doc.expand_with(&mut transformer); // Returns Vec<Document>
 ```
 
-#### 6. **Generic AST with User Data** - Preserving metadata during transformations
+#### 7. **Generic AST with User Data** - Preserving metadata during transformations
 
 ```rust
 use markdown_ppp::ast::generic::*;
@@ -512,7 +568,7 @@ let mut transformer = IdAssigner { next_id: 1 };
 let result = doc_with_ids.expand_with(&mut transformer);
 ```
 
-#### 7. **Pipeline Builder** - Complex transformations
+#### 8. **Pipeline Builder** - Complex transformations
 
 ```rust
 use markdown_ppp::ast_transform::TransformPipeline;
@@ -590,18 +646,18 @@ println!("{}", markdown_output);
 This is useful if you want to control wrapping behavior or generate more compact
 or expanded Markdown documents.
 
-## 🖨️ Pretty-printing (AST → HTML)
+## 🖨️ Pretty-printing (AST → Typst)
 
-You can convert an AST (`Document`) back into a formatted HTML string using the
-`render_html` function from the `html_printer` module.
+You can convert an AST (`Document`) into a formatted Typst string using the
+`render_typst` function from the `typst_printer` module.
 
-This feature is enabled by default via the `html-printer` feature.
+This feature is disabled by default and must be enabled via the `typst-printer` feature.
 
 ### Basic example
 
 ```rust
-use markdown_ppp::html_printer::render_html;
-use markdown_ppp::html_printer::config::Config;
+use markdown_ppp::typst_printer::render_typst;
+use markdown_ppp::typst_printer::config::Config;
 use markdown_ppp::parser::{parse_markdown, MarkdownParserState};
 use markdown_ppp::ast::Document;
 
@@ -609,78 +665,7 @@ let config = Config::default();
 let ast = parse_markdown(MarkdownParserState::default(), "# Hello, World!")
     .unwrap();
 
-println!("{}", render_html(&ast, config));
-```
-
-## 📄 LaTeX Rendering (AST → LaTeX)
-
-You can convert an AST (`Document`) into LaTeX format using the `render_latex`
-function from the `latex_printer` module.
-
-This feature is disabled by default and must be enabled via the `latex-printer`
-feature.
-
-### Basic example
-
-```rust
-use markdown_ppp::latex_printer::render_latex;
-use markdown_ppp::latex_printer::config::Config;
-use markdown_ppp::ast::*;
-
-let doc = Document {
-    blocks: vec![
-        Block::Heading(Heading {
-            kind: HeadingKind::Atx(1),
-            content: vec![Inline::Text("Hello LaTeX".to_string())],
-        }),
-        Block::Paragraph(vec![
-            Inline::Text("This is ".to_string()),
-            Inline::Strong(vec![Inline::Text("bold".to_string())]),
-            Inline::Text(" text.".to_string()),
-        ]),
-    ],
-};
-
-let config = Config::default();
-let latex_output = render_latex(&doc, config);
-
-println!("{}", latex_output);
-```
-
-### Configuration Options
-
-The LaTeX printer supports various configuration options for different output
-styles:
-
-#### Table Styles
-
-```rust
-use markdown_ppp::latex_printer::config::{Config, TableStyle};
-
-// Use booktabs for professional tables
-let config = Config::default().with_table_style(TableStyle::Booktabs);
-
-// Use longtabu for tables that span multiple pages
-let config = Config::default().with_table_style(TableStyle::Longtabu);
-```
-
-#### Code Block Styles
-
-```rust
-use markdown_ppp::latex_printer::config::{Config, CodeBlockStyle};
-
-// Use minted for syntax highlighting (requires minted package)
-let config = Config::default().with_code_block_style(CodeBlockStyle::Minted);
-
-// Use listings package for code blocks
-let config = Config::default().with_code_block_style(CodeBlockStyle::Listings);
-```
-
-#### Custom Width
-
-```rust
-let config = Config::default().with_width(100);
-let latex_output = render_latex(&doc, config);
+println!("{}", render_typst(&ast, config));
 ```
 
 ---
@@ -691,8 +676,7 @@ let latex_output = render_latex(&doc, config);
 | ----------------- | -------------------------------------------------------------------------------------------- |
 | `parser`          | Enables Markdown parsing support. Enabled by default.                                        |
 | `printer`         | Enables AST → Markdown string conversion. Enabled by default.                                |
-| `html-printer`    | Enables AST → HTML string conversion. Enabled by default.                                    |
-| `latex-printer`   | Enables AST → LaTeX string conversion. Disabled by default.                                  |
+| `typst-printer`   | Enables AST → Typst string conversion. Disabled by default.                                  |
 | `ast-transform`   | Enables AST transformation, query, and visitor functionality. Disabled by default.           |
 | `ast-specialized` | Provides specialized AST types with element IDs. Disabled by default.                        |
 | `ast-serde`       | Adds `Serialize` and `Deserialize` traits to all AST types via `serde`. Disabled by default. |
@@ -711,10 +695,10 @@ disable the `printer` feature manually:
 cargo add markdown-ppp --no-default-features --features parser
 ```
 
-To enable LaTeX output support:
+To enable Typst output support:
 
 ```bash
-cargo add markdown-ppp --features latex-printer
+cargo add markdown-ppp --features typst-printer
 ```
 
 ---
