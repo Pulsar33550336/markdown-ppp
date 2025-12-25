@@ -9,6 +9,7 @@ use nom::{
     sequence::preceded,
     IResult, Parser,
 };
+use std::borrow::Cow;
 use std::rc::Rc;
 
 pub(crate) fn paragraph<'a>(
@@ -39,8 +40,60 @@ pub(crate) fn paragraph<'a>(
 
         let content = lines.join("\n");
 
+        let transformed_input =
+            if let Some(inline_macro_replacer) = &state.config.inline_macro_replacer {
+                let mut replacer = inline_macro_replacer.borrow_mut();
+                let mut result = String::new();
+                let mut last_pos = 0;
+
+                while let Some(start_pos) = content[last_pos..].find("{{") {
+                    let absolute_start = last_pos + start_pos;
+                    let mut balance = 1;
+                    let mut current_scan_pos = absolute_start + 2;
+                    let mut end_pos = None;
+
+                    while let Some(next_marker_pos) =
+                        content[current_scan_pos..].find(|c| c == '{' || c == '}')
+                    {
+                        let absolute_marker_pos = current_scan_pos + next_marker_pos;
+                        if content.get(absolute_marker_pos..absolute_marker_pos + 2) == Some("{{")
+                        {
+                            balance += 1;
+                            current_scan_pos = absolute_marker_pos + 2;
+                        } else if content.get(absolute_marker_pos..absolute_marker_pos + 2)
+                            == Some("}}")
+                        {
+                            balance -= 1;
+                            if balance == 0 {
+                                end_pos = Some(absolute_marker_pos);
+                                break;
+                            }
+                            current_scan_pos = absolute_marker_pos + 2;
+                        } else {
+                            current_scan_pos = absolute_marker_pos + 1;
+                        }
+                    }
+
+                    if let Some(absolute_end) = end_pos {
+                        result.push_str(&content[last_pos..absolute_start]);
+                        let macro_content = &content[absolute_start + 2..absolute_end];
+                        let replacement = (replacer)(macro_content.trim());
+                        result.push_str(&replacement);
+                        last_pos = absolute_end + 2;
+                    } else {
+                        // No matching end found, stop processing
+                        break;
+                    }
+                }
+
+                result.push_str(&content[last_pos..]);
+                Cow::Owned(result)
+            } else {
+                Cow::Borrowed(content.as_str())
+            };
+
         let (_, content) = crate::parser::inline::inline_many1(state.clone())
-            .parse(content.as_str())
+            .parse(transformed_input.as_ref())
             .map_err(|err| err.map_input(|_| input))?;
 
         Ok((input, content))
