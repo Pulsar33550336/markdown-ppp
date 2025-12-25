@@ -220,7 +220,6 @@ pub trait Visitor {
             | Inline::Autolink(_)
             | Inline::FootnoteReference(_)
             | Inline::Latex(_)
-            | Inline::Macro(_)
             | Inline::Empty => {}
         }
     }

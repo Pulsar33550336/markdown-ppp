@@ -17,6 +17,9 @@ type CustomBlockParserFn =
 type CustomInlineParserFn =
     Rc<RefCell<Box<dyn for<'a> FnMut(&'a str) -> IResult<&'a str, Vec<crate::ast::Inline>>>>>;
 
+/// Function type for replacing inline macros.
+pub type InlineMacroReplacerFn = Rc<RefCell<Box<dyn FnMut(&str) -> String>>>;
+
 /// Behavior of the parser when encountering certain elements.
 #[derive(Clone)]
 pub enum ElementBehavior<ELT> {
@@ -120,6 +123,9 @@ pub struct MarkdownParserConfig {
 
     /// A custom parser for inlines. This is a function that takes a string and returns a `Inline`.
     pub(crate) custom_inline_parser: Option<CustomInlineParserFn>,
+
+    /// A function that replaces inline macros.
+    pub(crate) inline_macro_replacer: Option<InlineMacroReplacerFn>,
 }
 
 impl Default for MarkdownParserConfig {
@@ -152,6 +158,7 @@ impl Default for MarkdownParserConfig {
             inline_text_behavior: ElementBehavior::Parse,
             custom_block_parser: None,
             custom_inline_parser: None,
+            inline_macro_replacer: None,
         }
     }
 }
@@ -434,6 +441,14 @@ impl MarkdownParserConfig {
     pub fn with_custom_inline_parser(self, parser: CustomInlineParserFn) -> Self {
         Self {
             custom_inline_parser: Some(parser),
+            ..self
+        }
+    }
+
+    /// Set a function that replaces inline macros.
+    pub fn with_inline_macro_replacer(self, replacer: InlineMacroReplacerFn) -> Self {
+        Self {
+            inline_macro_replacer: Some(replacer),
             ..self
         }
     }

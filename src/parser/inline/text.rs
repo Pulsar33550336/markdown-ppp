@@ -102,7 +102,6 @@ fn not_a_text<'a>(
                         crate::parser::inline::strikethrough::strikethrough(state.clone()),
                     ),
                 ),
-                map(crate::parser::inline::r#macro::macro_parser, |_| vec![()]),
             )),
             map(
                 value(

@@ -130,7 +130,6 @@ impl<'a> ToDocInline<'a> for Inline {
             Inline::Autolink(link) => arena.text(format!("<{link}>")),
             Inline::FootnoteReference(label) => arena.text(format!("[^{label}]")),
             Inline::Empty => arena.nil(),
-            Inline::Macro(content) => arena.text(format!("{{{{ {} }}}}", content)),
             Inline::LinkReference(v) => {
                 if v.label == v.text {
                     return arena

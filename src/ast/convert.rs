@@ -187,7 +187,6 @@ impl<T: Default> WithData<T> for Inline {
                 user_data: data,
             },
             Inline::Empty => generic::Inline::Empty { user_data: data },
-            Inline::Macro(content) => todo!(),
         }
     }
 }

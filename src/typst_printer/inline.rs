@@ -173,7 +173,6 @@ impl<'a> ToDoc<'a> for Inline {
                 .text("#mi(block: false, \"")
                 .append(state.arena.text(escape_typst(&latex.clone())))
                 .append(state.arena.text("\")")),
-            Inline::Macro(_) => state.arena.nil(),
         }
     }
 }

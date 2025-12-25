@@ -11,9 +11,7 @@ fn test_macro_transformer() {
     let state = MarkdownParserState::default();
     let doc = parse_markdown(
         state,
-        "Hello, {{ inline_macro }}.
-
-{{ block_macro }}
+        "{{ block_macro }}
 ",
     )
     .unwrap();
@@ -30,13 +28,6 @@ fn test_macro_transformer() {
                 )])]
             }
         }),
-        inline_expander: Rc::new(|content| {
-            if content == "inline_macro" {
-                vec![Inline::Text("inline macro replaced".to_string())]
-            } else {
-                vec![Inline::Text("unknown inline macro".to_string())]
-            }
-        }),
     };
 
     let expanded_doc = doc.expand_with(&mut transformer);
@@ -44,11 +35,6 @@ fn test_macro_transformer() {
 
     let expected_doc = Document {
         blocks: vec![
-            Block::Paragraph(vec![
-                Inline::Text("Hello, ".to_string()),
-                Inline::Text("inline macro replaced".to_string()),
-                Inline::Text(".".to_string()),
-            ]),
             Block::Paragraph(vec![Inline::Text("Block macro replaced.".to_string())]),
         ],
     };

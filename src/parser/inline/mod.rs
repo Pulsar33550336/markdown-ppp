@@ -8,7 +8,6 @@ mod html_entity;
 mod image;
 mod inline_link;
 mod latex;
-mod r#macro;
 mod reference_link;
 mod strikethrough;
 mod text;
@@ -125,7 +124,6 @@ pub(crate) fn inline<'a>(
             ),
             // NOTE: It's important that the latex parser comes before the text parser
             crate::parser::inline::latex::latex,
-            crate::parser::inline::r#macro::macro_parser,
             conditional_inline(
                 state.config.inline_emphasis_behavior.clone(),
                 crate::parser::inline::emphasis::emphasis(state.clone()),
